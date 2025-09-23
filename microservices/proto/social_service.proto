@@ -1,0 +1,31 @@
+syntax = "proto3";
+package chat.social;
+import "common.proto";
+
+message AddFriendRequest { int32 user_id = 1; int32 friend_id = 2; }
+message AddFriendResponse { int32 errno = 1; string errmsg = 2; }
+
+message ListFriendsRequest { int32 user_id = 1; }
+message ListFriendsResponse { repeated chat.common.User friends = 1; }
+
+message CreateGroupRequest { int32 owner_id = 1; string name = 2; string desc = 3; }
+message CreateGroupResponse { int32 errno = 1; string errmsg = 2; int32 group_id = 3; }
+
+message AddGroupRequest { int32 user_id = 1; int32 group_id = 2; }
+message AddGroupResponse { int32 errno = 1; string errmsg = 2; }
+
+message ListGroupsRequest { int32 user_id = 1; }
+message ListGroupsResponse {
+  message Group { int32 id = 1; string name = 2; int32 member_count = 3; }
+  repeated Group groups = 1;
+}
+
+service SocialService {
+  rpc AddFriend(AddFriendRequest) returns (AddFriendResponse);
+  rpc ListFriends(ListFriendsRequest) returns (ListFriendsResponse);
+  rpc CreateGroup(CreateGroupRequest) returns (CreateGroupResponse);
+  rpc AddGroup(AddGroupRequest) returns (AddGroupResponse);
+  rpc ListGroups(ListGroupsRequest) returns (ListGroupsResponse);
+}
+
+

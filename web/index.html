@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>聊天室</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <div id="app">
+        <!-- 登入頁面 -->
+        <div id="loginPage" class="page active">
+            <div class="auth-container">
+                <div class="auth-box">
+                    <h2><i class="fas fa-comments"></i> 聊天室</h2>
+                    <form id="loginForm">
+                        <div class="input-group">
+                            <i class="fas fa-user"></i>
+                            <input type="text" id="loginId" placeholder="用戶ID" required>
+                        </div>
+                        <div class="input-group">
+                            <i class="fas fa-lock"></i>
+                            <input type="password" id="loginPwd" placeholder="密碼" required>
+                        </div>
+                        <button type="submit" class="btn-primary">登入</button>
+                    </form>
+                    <p class="auth-switch">還沒有帳號？ <a href="#" id="showRegister">立即註冊</a></p>
+                    <p class="auth-switch">忘記用戶ID？ <a href="#" id="showFindId">找回用戶ID</a></p>
+                    <p class="help-text">💡 提示：用戶ID在註冊成功後會自動顯示，請記住它用於登入</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- 註冊頁面 -->
+        <div id="registerPage" class="page">
+            <div class="auth-container">
+                <div class="auth-box">
+                    <h2><i class="fas fa-user-plus"></i> 註冊帳號</h2>
+                    <form id="registerForm">
+                        <div class="input-group">
+                            <i class="fas fa-user"></i>
+                            <input type="text" id="registerName" placeholder="用戶名稱" required>
+                        </div>
+                        <div class="input-group">
+                            <i class="fas fa-lock"></i>
+                            <input type="password" id="registerPwd" placeholder="密碼" required>
+                        </div>
+                        <div class="input-group">
+                            <i class="fas fa-lock"></i>
+                            <input type="password" id="registerPwdConfirm" placeholder="確認密碼" required>
+                        </div>
+                        <button type="submit" class="btn-primary">註冊</button>
+                    </form>
+                    <p class="auth-switch">已有帳號？ <a href="#" id="showLogin">立即登入</a></p>
+                </div>
+            </div>
+        </div>
+
+        <!-- 聊天頁面 -->
+        <div id="chatPage" class="page">
+            <div class="chat-container">
+                <!-- 側邊欄 -->
+                <div class="sidebar">
+                    <div class="user-info">
+                        <div class="avatar">
+                            <i class="fas fa-user"></i>
+                        </div>
+                        <div class="user-details">
+                            <h3 id="currentUserName">用戶名</h3>
+                            <span class="status online">在線</span>
+                        </div>
+                        <button id="logoutBtn" class="btn-logout">
+                            <i class="fas fa-sign-out-alt"></i>
+                        </button>
+                    </div>
+
+                    <div class="tabs">
+                        <button class="tab-btn active" data-tab="friends">
+                            <i class="fas fa-users"></i> 好友
+                        </button>
+                        <button class="tab-btn" data-tab="groups">
+                            <i class="fas fa-layer-group"></i> 群組
+                        </button>
+                    </div>
+
+                    <!-- 好友列表 -->
+                    <div id="friendsTab" class="tab-content active">
+                        <div class="list-header">
+                            <h4>好友列表</h4>
+                            <button id="addFriendBtn" class="btn-add">
+                                <i class="fas fa-plus"></i>
+                            </button>
+                        </div>
+                        <div id="friendsList" class="contact-list">
+                            <!-- 好友列表將在這裡動態生成 -->
+                        </div>
+                    </div>
+
+                    <!-- 群組列表 -->
+                    <div id="groupsTab" class="tab-content">
+                        <div class="list-header">
+                            <h4>群組列表</h4>
+                            <button id="createGroupBtn" class="btn-add">
+                                <i class="fas fa-plus"></i>
+                            </button>
+                        </div>
+                        <div id="groupsList" class="contact-list">
+                            <!-- 群組列表將在這裡動態生成 -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 聊天區域 -->
+                <div class="chat-area">
+                    <div class="chat-header">
+                        <div class="chat-info">
+                            <h3 id="chatTitle">選擇聊天對象</h3>
+                            <span id="chatStatus"></span>
+                        </div>
+                    </div>
+
+                    <div class="messages-container">
+                        <div id="messagesList" class="messages-list">
+                            <!-- 訊息將在這裡動態生成 -->
+                        </div>
+                    </div>
+
+                    <div class="message-input">
+                        <div class="input-container">
+                            <input type="text" id="messageInput" placeholder="輸入訊息..." disabled>
+                            <button id="sendBtn" class="btn-send" disabled>
+                                <i class="fas fa-paper-plane"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 模態框 -->
+        <div id="modal" class="modal">
+            <div class="modal-content">
+                <span class="close">&times;</span>
+                <h3 id="modalTitle">標題</h3>
+                <div id="modalBody">
+                    <!-- 模態框內容 -->
+                </div>
+            </div>
+        </div>
+
+        <!-- 找回用戶ID模態框 -->
+        <div id="findIdModal" class="modal">
+            <div class="modal-content">
+                <span class="close" onclick="closeFindIdModal()">&times;</span>
+                <h3><i class="fas fa-search"></i> 找回用戶ID</h3>
+                <div class="find-id-form">
+                    <div class="input-group">
+                        <i class="fas fa-user"></i>
+                        <input type="text" id="findIdName" placeholder="用戶名" required>
+                    </div>
+                    <div class="input-group">
+                        <i class="fas fa-lock"></i>
+                        <input type="password" id="findIdPwd" placeholder="密碼" required>
+                    </div>
+                    <button onclick="findUserId()" class="btn-primary">找回用戶ID</button>
+                    <button onclick="closeFindIdModal()" class="btn-secondary">取消</button>
+                    <div id="findIdResult" class="result-message"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html> 

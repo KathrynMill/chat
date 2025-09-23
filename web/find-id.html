@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>找回用戶ID</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .find-id-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            padding: 20px;
+        }
+        
+        .find-id-box {
+            background: white;
+            padding: 40px;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 500px;
+            text-align: center;
+        }
+        
+        .find-id-box h2 {
+            color: #333;
+            margin-bottom: 30px;
+            font-size: 28px;
+        }
+        
+        .find-id-box h2 i {
+            color: #667eea;
+            margin-right: 10px;
+        }
+        
+        .result-display {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 10px;
+            font-weight: 500;
+        }
+        
+        .result-display.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .result-display.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .user-id-display {
+            background: #e3f2fd;
+            color: #1565c0;
+            border: 2px solid #2196f3;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 15px 0;
+            font-family: monospace;
+            font-size: 18px;
+            font-weight: bold;
+        }
+        
+        .action-buttons {
+            margin-top: 20px;
+        }
+        
+        .action-buttons button {
+            margin: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="find-id-container">
+        <div class="find-id-box">
+            <h2><i class="fas fa-search"></i> 找回用戶ID</h2>
+            
+            <form id="findIdForm">
+                <div class="input-group">
+                    <i class="fas fa-user"></i>
+                    <input type="text" id="findIdName" placeholder="用戶名" required>
+                </div>
+                <div class="input-group">
+                    <i class="fas fa-lock"></i>
+                    <input type="password" id="findIdPwd" placeholder="密碼" required>
+                </div>
+                <button type="submit" class="btn-primary">找回用戶ID</button>
+            </form>
+            
+            <div id="resultDisplay"></div>
+            
+            <div class="action-buttons">
+                <a href="/" class="btn-secondary">返回主頁</a>
+                <a href="/debug" class="btn-secondary">調試頁面</a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('findIdForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const name = document.getElementById('findIdName').value;
+            const pwd = document.getElementById('findIdPwd').value;
+            const resultDiv = document.getElementById('resultDisplay');
+            
+            if (!name || !pwd) {
+                resultDiv.innerHTML = '<div class="result-display error">請填寫用戶名和密碼</div>';
+                return;
+            }
+            
+            try {
+                const response = await fetch('/api/find-user-id', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ name, pwd })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    resultDiv.innerHTML = `
+                        <div class="result-display success">
+                            <strong>✅ 找到用戶！</strong><br>
+                            用戶名: ${data.userName}
+                        </div>
+                        <div class="user-id-display">
+                            您的用戶ID是: ${data.userId}
+                        </div>
+                        <div class="action-buttons">
+                            <button onclick="copyToClipboard('${data.userId}')" class="btn-primary">
+                                <i class="fas fa-copy"></i> 複製用戶ID
+                            </button>
+                            <button onclick="goToLogin('${data.userId}', '${pwd}')" class="btn-primary">
+                                <i class="fas fa-sign-in-alt"></i> 立即登入
+                            </button>
+                        </div>
+                    `;
+                } else {
+                    resultDiv.innerHTML = `<div class="result-display error">❌ ${data.message}</div>`;
+                }
+            } catch (error) {
+                console.error('找回用戶ID錯誤:', error);
+                resultDiv.innerHTML = '<div class="result-display error">❌ 網路錯誤，請重試</div>';
+            }
+        });
+        
+        function copyToClipboard(text) {
+            navigator.clipboard.writeText(text).then(() => {
+                alert('用戶ID已複製到剪貼板！');
+            }).catch(() => {
+                // 如果剪貼板API不可用，使用傳統方法
+                const textArea = document.createElement('textarea');
+                textArea.value = text;
+                document.body.appendChild(textArea);
+                textArea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textArea);
+                alert('用戶ID已複製到剪貼板！');
+            });
+        }
+        
+        function goToLogin(userId, pwd) {
+            // 將用戶ID和密碼存儲到localStorage
+            localStorage.setItem('tempUserId', userId);
+            localStorage.setItem('tempUserPwd', pwd);
+            
+            // 跳轉到主頁
+            window.location.href = '/';
+        }
+    </script>
+</body>
+</html> 

@@ -1,0 +1,25 @@
+syntax = "proto3";
+package chat.message;
+import "common.proto";
+
+message OneChatRequest { chat.common.ChatMessage msg = 1; }
+message OneChatResponse { int32 errno = 1; string errmsg = 2; }
+
+message GroupChatRequest { chat.common.ChatMessage msg = 1; }
+message GroupChatResponse { int32 errno = 1; string errmsg = 2; }
+
+message ListMessagesRequest {
+  int32 user_id = 1;
+  string scope = 2;   // "private:peer_id" or "group:group_id"
+  int64 since_ms = 3; // optional
+  int32 limit = 4;    // optional
+}
+message ListMessagesResponse { repeated chat.common.ChatMessage messages = 1; }
+
+service MessageService {
+  rpc OneChat(OneChatRequest) returns (OneChatResponse);
+  rpc GroupChat(GroupChatRequest) returns (GroupChatResponse);
+  rpc ListMessages(ListMessagesRequest) returns (ListMessagesResponse);
+}
+
+

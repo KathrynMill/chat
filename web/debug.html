@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>調試頁面</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .section {
+            margin-bottom: 30px;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .user-item {
+            padding: 10px;
+            margin: 5px 0;
+            background: #f5f5f5;
+            border-radius: 3px;
+        }
+        button {
+            padding: 10px 20px;
+            margin: 5px;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        input {
+            padding: 8px;
+            margin: 5px;
+            border: 1px solid #ddd;
+            border-radius: 3px;
+        }
+        .result {
+            margin-top: 10px;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 3px;
+            white-space: pre-wrap;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔧 聊天應用程式調試頁面</h1>
+    
+    <div class="section">
+        <h2>📝 註冊測試</h2>
+        <input type="text" id="regName" placeholder="用戶名">
+        <input type="password" id="regPwd" placeholder="密碼">
+        <button onclick="testRegister()">註冊</button>
+        <div id="registerResult" class="result"></div>
+    </div>
+
+    <div class="section">
+        <h2>🔐 登入測試</h2>
+        <input type="text" id="loginId" placeholder="用戶ID">
+        <input type="password" id="loginPwd" placeholder="密碼" value="testpass">
+        <button onclick="testLogin()">登入</button>
+        <div id="loginResult" class="result"></div>
+    </div>
+
+    <div class="section">
+        <h2>🔍 找回用戶ID</h2>
+        <input type="text" id="findIdName" placeholder="用戶名">
+        <input type="password" id="findIdPwd" placeholder="密碼">
+        <button onclick="testFindUserId()">找回用戶ID</button>
+        <div id="findIdResult" class="result"></div>
+    </div>
+
+    <div class="section">
+        <h2>👥 查看所有用戶</h2>
+        <button onclick="getAllUsers()">刷新用戶列表</button>
+        <div id="usersList"></div>
+    </div>
+
+    <div class="section">
+        <h2>🧹 清理數據</h2>
+        <button onclick="clearData()">清除所有用戶數據</button>
+        <div id="clearResult" class="result"></div>
+    </div>
+
+    <script>
+        async function testRegister() {
+            const name = document.getElementById('regName').value;
+            const pwd = document.getElementById('regPwd').value;
+            
+            if (!name || !pwd) {
+                alert('請填寫用戶名和密碼');
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/register', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name, pwd })
+                });
+                
+                const result = await response.json();
+                document.getElementById('registerResult').textContent = JSON.stringify(result, null, 2);
+                
+                if (result.success) {
+                    // 自動填充登入表單
+                    document.getElementById('loginId').value = result.userId;
+                    document.getElementById('loginPwd').value = pwd;
+                }
+            } catch (error) {
+                document.getElementById('registerResult').textContent = '錯誤: ' + error.message;
+            }
+        }
+
+        async function testLogin() {
+            const id = document.getElementById('loginId').value;
+            const pwd = document.getElementById('loginPwd').value;
+            
+            console.log('發送登入請求:', { id, pwd });
+            
+            try {
+                const response = await fetch('/api/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ id, pwd })
+                });
+                
+                const result = await response.json();
+                console.log('登入響應:', result);
+                
+                document.getElementById('loginResult').textContent = 
+                    '狀態碼: ' + response.status + '\n' +
+                    '響應: ' + JSON.stringify(result, null, 2);
+            } catch (error) {
+                console.error('登入錯誤:', error);
+                document.getElementById('loginResult').textContent = '錯誤: ' + error.message;
+            }
+        }
+
+        async function testFindUserId() {
+            const name = document.getElementById('findIdName').value;
+            const pwd = document.getElementById('findIdPwd').value;
+            
+            console.log('發送找回用戶ID請求:', { name, pwd });
+            
+            try {
+                const response = await fetch('/api/find-user-id', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name, pwd })
+                });
+                
+                const result = await response.json();
+                console.log('找回用戶ID響應:', result);
+                
+                document.getElementById('findIdResult').textContent = 
+                    '狀態碼: ' + response.status + '\n' +
+                    '響應: ' + JSON.stringify(result, null, 2);
+                
+                if (result.success && result.userId) {
+                    document.getElementById('loginId').value = result.userId;
+                    document.getElementById('loginPwd').value = pwd;
+                }
+            } catch (error) {
+                console.error('找回用戶ID錯誤:', error);
+                document.getElementById('findIdResult').textContent = '錯誤: ' + error.message;
+            }
+        }
+
+        async function getAllUsers() {
+            try {
+                const response = await fetch('/api/debug/users');
+                const users = await response.json();
+                
+                const usersList = document.getElementById('usersList');
+                if (users.length === 0) {
+                    usersList.innerHTML = '<p>沒有用戶</p>';
+                    return;
+                }
+                
+                usersList.innerHTML = users.map(user => 
+                    `<div class="user-item">
+                        <strong>ID:</strong> ${user.id}<br>
+                        <strong>用戶名:</strong> ${user.name}<br>
+                        <strong>狀態:</strong> ${user.status}<br>
+                        <strong>密碼:</strong> ${user.pwd}
+                    </div>`
+                ).join('');
+            } catch (error) {
+                document.getElementById('usersList').innerHTML = '<p>錯誤: ' + error.message + '</p>';
+            }
+        }
+
+        async function clearData() {
+            if (!confirm('確定要清除所有用戶數據嗎？')) {
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/debug/clear', { method: 'POST' });
+                const result = await response.json();
+                document.getElementById('clearResult').textContent = JSON.stringify(result, null, 2);
+                
+                // 清空用戶列表
+                document.getElementById('usersList').innerHTML = '<p>沒有用戶</p>';
+            } catch (error) {
+                document.getElementById('clearResult').textContent = '錯誤: ' + error.message;
+            }
+        }
+
+        // 頁面載入時自動獲取用戶列表
+        window.onload = function() {
+            getAllUsers();
+        };
+    </script>
+</body>
+</html> 

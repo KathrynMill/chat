@@ -1,0 +1,19 @@
+syntax = "proto3";
+package chat.common;
+
+message User {
+  int32 id = 1;
+  string name = 2;
+  string state = 3; // online/offline
+}
+
+message ChatMessage {
+  int32 from_id = 1;
+  int32 to_id = 2;        // for private chat
+  int32 group_id = 3;     // for group chat
+  string content = 4;
+  int64 timestamp_ms = 5;
+  string msg_id = 6;      // optional: for de-duplication
+}
+
+

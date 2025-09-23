@@ -1,0 +1,26 @@
+syntax = "proto3";
+package chat.user;
+import "common.proto";
+
+message RegRequest { string name = 1; string password = 2; }
+message RegResponse { int32 errno = 1; string errmsg = 2; int32 user_id = 3; }
+
+message LoginRequest { int32 id = 1; string password = 2; }
+message LoginResponse {
+  int32 errno = 1; string errmsg = 2;
+  chat.common.User user = 3;
+  repeated string offline_msgs_json = 4; // or switch to repeated ChatMessage later
+  repeated chat.common.User friends = 5;
+  string session_token = 6;
+}
+
+message LogoutRequest { int32 id = 1; }
+message LogoutResponse { int32 errno = 1; string errmsg = 2; }
+
+service UserService {
+  rpc Reg(RegRequest) returns (RegResponse);
+  rpc Login(LoginRequest) returns (LoginResponse);
+  rpc Logout(LogoutRequest) returns (LogoutResponse);
+}
+
+

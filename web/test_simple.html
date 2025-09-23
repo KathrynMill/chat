@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>簡單測試</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        input, button {
+            padding: 10px;
+            margin: 5px;
+            font-size: 16px;
+        }
+        .result {
+            margin-top: 10px;
+            padding: 10px;
+            background: #f5f5f5;
+            border-radius: 3px;
+            white-space: pre-wrap;
+            font-family: monospace;
+        }
+    </style>
+</head>
+<body>
+    <h1>🧪 簡單API測試</h1>
+    
+    <div class="test-section">
+        <h2>註冊測試</h2>
+        <input type="text" id="regName" placeholder="用戶名" value="testuser">
+        <input type="password" id="regPwd" placeholder="密碼" value="testpass">
+        <button onclick="testRegister()">註冊</button>
+        <div id="registerResult" class="result"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>登入測試</h2>
+        <input type="text" id="loginId" placeholder="用戶ID">
+        <input type="password" id="loginPwd" placeholder="密碼" value="testpass">
+        <button onclick="testLogin()">登入</button>
+        <div id="loginResult" class="result"></div>
+    </div>
+
+    <script>
+        async function testRegister() {
+            const name = document.getElementById('regName').value;
+            const pwd = document.getElementById('regPwd').value;
+            
+            console.log('發送註冊請求:', { name, pwd });
+            
+            try {
+                const response = await fetch('/api/register', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name, pwd })
+                });
+                
+                const result = await response.json();
+                console.log('註冊響應:', result);
+                
+                document.getElementById('registerResult').textContent = 
+                    '狀態碼: ' + response.status + '\n' +
+                    '響應: ' + JSON.stringify(result, null, 2);
+                
+                if (result.success && result.userId) {
+                    document.getElementById('loginId').value = result.userId;
+                }
+            } catch (error) {
+                console.error('註冊錯誤:', error);
+                document.getElementById('registerResult').textContent = '錯誤: ' + error.message;
+            }
+        }
+
+        async function testLogin() {
+            const id = document.getElementById('loginId').value;
+            const pwd = document.getElementById('loginPwd').value;
+            
+            console.log('發送登入請求:', { id, pwd });
+            
+            try {
+                const response = await fetch('/api/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ id, pwd })
+                });
+                
+                const result = await response.json();
+                console.log('登入響應:', result);
+                
+                document.getElementById('loginResult').textContent = 
+                    '狀態碼: ' + response.status + '\n' +
+                    '響應: ' + JSON.stringify(result, null, 2);
+            } catch (error) {
+                console.error('登入錯誤:', error);
+                document.getElementById('loginResult').textContent = '錯誤: ' + error.message;
+            }
+        }
+    </script>
+</body>
+</html> 
