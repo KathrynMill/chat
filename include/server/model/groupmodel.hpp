@@ -18,6 +18,8 @@ public:
     vector<Group> queryGroups(int userid);
     // 根据指定的groupid查询群组用户id列表，除userid自己，主要用户群聊业务给群组其它成员群发消息
     vector<int> queryGroupUsers(int userid, int groupid);
+    // 根据 groupid 查詢群組所有成員（不含自己）
+    std::vector<GroupUser> queryGroupUsers(int groupid);
 };
 
 #endif

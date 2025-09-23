@@ -50,6 +50,10 @@ public:
     MsgHandler getHandler(int msgid);
     // 从redis消息队列中获取订阅的消息
     void handleRedisSubscribeMessage(int, string);
+    // 公開獲取模型對象
+    UserModel& getUserModel() { return _userModel; }
+    FriendModel& getFriendModel() { return _friendModel; }
+    GroupModel& getGroupModel() { return _groupModel; }
 
 private:
     ChatService();

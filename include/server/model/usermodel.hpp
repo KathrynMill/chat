@@ -17,6 +17,15 @@ public:
 
     // 重置用户的状态信息
     void resetState();
+
+    // 查詢所有用戶
+    std::vector<User> queryAll();
+
+    // 清空所有用戶（僅用於調試）
+    int clearAll();
+
+    // 根據用戶名查詢
+    User queryByName(const std::string& name);
 };
 
 #endif

@@ -120,3 +120,31 @@ vector<int> GroupModel::queryGroupUsers(int userid, int groupid)
     }
     return idVec;
 }
+
+// 根據 groupid 查詢群組所有成員（不含自己）
+std::vector<GroupUser> GroupModel::queryGroupUsers(int groupid)
+{
+    std::vector<GroupUser> users;
+    char sql[1024] = {0};
+    sprintf(sql, "select a.id,a.name,a.state,b.role from user a inner join groupuser b on b.userid=a.id where b.groupid=%d", groupid);
+    MySQL mysql;
+    if (mysql.connect())
+    {
+        MYSQL_RES *res = mysql.query(sql);
+        if (res != nullptr)
+        {
+            MYSQL_ROW row;
+            while ((row = mysql_fetch_row(res)) != nullptr)
+            {
+                GroupUser user;
+                user.setId(atoi(row[0]));
+                user.setName(row[1]);
+                user.setState(row[2]);
+                user.setRole(row[3]);
+                users.push_back(user);
+            }
+            mysql_free_result(res);
+        }
+    }
+    return users;
+}

@@ -85,3 +85,72 @@ void UserModel::resetState()
         mysql.update(sql);
     }
 }
+
+// 查詢所有用戶
+std::vector<User> UserModel::queryAll()
+{
+    std::vector<User> users;
+    char sql[1024] = {0};
+    sprintf(sql, "select * from user");
+    MySQL mysql;
+    if (mysql.connect())
+    {
+        MYSQL_RES *res = mysql.query(sql);
+        if (res != nullptr)
+        {
+            MYSQL_ROW row;
+            while ((row = mysql_fetch_row(res)) != nullptr)
+            {
+                User user;
+                user.setId(atoi(row[0]));
+                user.setName(row[1]);
+                user.setPwd(row[2]);
+                user.setState(row[3]);
+                users.push_back(user);
+            }
+            mysql_free_result(res);
+        }
+    }
+    return users;
+}
+
+// 清空所有用戶（僅用於調試）
+int UserModel::clearAll()
+{
+    char sql[1024] = "delete from user";
+    MySQL mysql;
+    int affected = 0;
+    if (mysql.connect())
+    {
+        affected = mysql.update(sql);
+    }
+    return affected;
+}
+
+// 根據用戶名查詢
+User UserModel::queryByName(const std::string& name)
+{
+    char sql[1024] = {0};
+    sprintf(sql, "select * from user where name = '%s'", name.c_str());
+    MySQL mysql;
+    if (mysql.connect())
+    {
+        MYSQL_RES *res = mysql.query(sql);
+        if (res != nullptr)
+        {
+            MYSQL_ROW row = mysql_fetch_row(res);
+            if (row != nullptr)
+            {
+                User user;
+                user.setId(atoi(row[0]));
+                user.setName(row[1]);
+                user.setPwd(row[2]);
+                user.setState(row[3]);
+                mysql_free_result(res);
+                return user;
+            }
+            mysql_free_result(res);
+        }
+    }
+    return User();
+}

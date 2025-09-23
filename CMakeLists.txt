@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.0)
+cmake_minimum_required(VERSION 3.16)
 project(chat)
 
 # 配置编译选项
@@ -15,6 +15,15 @@ include_directories(${PROJECT_SOURCE_DIR}/include/server/model)
 include_directories(${PROJECT_SOURCE_DIR}/include/server/redis)
 include_directories(${PROJECT_SOURCE_DIR}/thirdparty)
 link_directories(/usr/lib64/mysql)
+
+# 集成Crow框架（更輕量級的C++ Web框架）
+include(FetchContent)
+FetchContent_Declare(
+    crow
+    GIT_REPOSITORY https://github.com/CrowCpp/Crow.git
+    GIT_TAG        v1.0+5
+)
+FetchContent_MakeAvailable(crow)
 
 # 加载子目录
 add_subdirectory(src)
