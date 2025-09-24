@@ -45,7 +45,7 @@ int main(int argc, char** argv) {
         std::cout << "Failed to register SocialService to Consul\n";
     }
     
-    // 定期健康檢查
+    // 定期健康检查
     std::thread healthThread([&consul, serviceId]() {
         while (true) {
             std::this_thread::sleep_for(std::chrono::seconds(30));
@@ -71,13 +71,13 @@ int main(int argc, char** argv) {
 #endif
     server->Wait();
     
-    // 服務關閉時註銷
+    // 服务关闭時註销
 #ifdef HAVE_CURL
     consul.deregisterService(serviceId);
     std::cout << "SocialService deregistered from Consul\n";
 #endif
 #else
-    std::cout << "SocialService built without gRPC. 請安裝依賴或執行 install_micro_deps.sh。\n";
+    std::cout << "SocialService built without gRPC. 請安裝依賴或执行 install_micro_deps.sh。\n";
 #endif
     return 0;
 }

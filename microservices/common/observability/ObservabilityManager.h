@@ -10,75 +10,75 @@
 #include "metrics/MetricsCollector.h"
 #include "tracing/Tracer.h"
 
-// 可觀測性管理器 - 統一管理日誌、指標和追蹤
+// 可觀测性管理器 - 统一管理日誌、指标和追蹤
 class ObservabilityManager {
 public:
     static ObservabilityManager& getInstance();
     
-    // 初始化可觀測性系統
+    // 初始化可觀测性系统
     bool initialize(const std::string& serviceName, 
                    const std::string& logLevel = "info",
                    const std::string& metricsPort = "8080",
                    const std::string& jaegerEndpoint = "");
     
-    // 關閉可觀測性系統
+    // 关闭可觀测性系统
     void shutdown();
     
-    // === 日誌記錄 ===
+    // === 日誌記录 ===
     
-    // 記錄 gRPC 調用
+    // 記录 gRPC 调用
     void logGrpcCall(const std::string& service, 
                     const std::string& method,
                     const std::string& status,
                     std::chrono::milliseconds duration,
                     const std::string& error = "");
     
-    // 記錄資料庫操作
+    // 記录资料庫操作
     void logDatabaseOperation(const std::string& operation,
                              const std::string& table,
                              const std::string& status,
                              std::chrono::milliseconds duration,
                              const std::string& error = "");
     
-    // 記錄業務操作
+    // 記录業务操作
     void logBusinessOperation(const std::string& operation,
                              const std::string& userId,
                              const std::string& status,
                              const std::string& details = "");
     
-    // 記錄系統事件
+    // 記录系统事件
     void logSystemEvent(const std::string& event,
                        const std::string& level,
                        const std::string& message,
                        const std::unordered_map<std::string, std::string>& context = {});
     
-    // === 指標收集 ===
+    // === 指标收集 ===
     
-    // 記錄 gRPC 調用指標
+    // 記录 gRPC 调用指标
     void recordGrpcMetrics(const std::string& service,
                           const std::string& method,
                           const std::string& status,
                           std::chrono::milliseconds duration);
     
-    // 記錄資料庫操作指標
+    // 記录资料庫操作指标
     void recordDatabaseMetrics(const std::string& operation,
                               const std::string& table,
                               const std::string& status,
                               std::chrono::milliseconds duration);
     
-    // 記錄業務指標
+    // 記录業务指标
     void recordBusinessMetrics(const std::string& operation,
                               const std::string& status,
                               int count = 1);
     
-    // 記錄系統指標
+    // 記录系统指标
     void recordSystemMetrics(const std::string& metric,
                             double value,
                             const std::unordered_map<std::string, std::string>& labels = {});
     
     // === 分散式追蹤 ===
     
-    // 開始追蹤 span
+    // 开始追蹤 span
     std::string startSpan(const std::string& operation,
                          const std::string& parentSpanId = "",
                          const std::unordered_map<std::string, std::string>& tags = {});
@@ -88,7 +88,7 @@ public:
                    const std::string& status = "ok",
                    const std::string& error = "");
     
-    // 添加 span 標籤
+    // 添加 span 标籤
     void addSpanTag(const std::string& spanId,
                    const std::string& key,
                    const std::string& value);
@@ -98,9 +98,9 @@ public:
                      const std::string& event,
                      const std::unordered_map<std::string, std::string>& attributes = {});
     
-    // === 統一操作 ===
+    // === 统一操作 ===
     
-    // 執行帶完整可觀測性的操作
+    // 执行帶完整可觀测性的操作
     template<typename Func>
     auto executeWithObservability(const std::string& operation,
                                  const std::string& service,
@@ -110,14 +110,14 @@ public:
         std::string spanId = startSpan(operation);
         
         try {
-            // 記錄開始
+            // 記录开始
             logSystemEvent("operation_start", "info", 
                           "Starting " + operation + " on " + service + "." + method);
             
-            // 執行操作
+            // 执行操作
             auto result = func();
             
-            // 記錄成功
+            // 記录成功
             auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(
                 std::chrono::high_resolution_clock::now() - startTime);
             
@@ -128,7 +128,7 @@ public:
             return result;
             
         } catch (const std::exception& e) {
-            // 記錄失敗
+            // 記录失败
             auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(
                 std::chrono::high_resolution_clock::now() - startTime);
             
@@ -141,7 +141,7 @@ public:
         }
     }
     
-    // 執行資料庫操作帶可觀測性
+    // 执行资料庫操作帶可觀测性
     template<typename Func>
     auto executeDatabaseWithObservability(const std::string& operation,
                                          const std::string& table,
@@ -150,14 +150,14 @@ public:
         std::string spanId = startSpan("db_" + operation);
         
         try {
-            // 記錄開始
+            // 記录开始
             logSystemEvent("db_operation_start", "info", 
                           "Starting " + operation + " on table " + table);
             
-            // 執行操作
+            // 执行操作
             auto result = func();
             
-            // 記錄成功
+            // 記录成功
             auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(
                 std::chrono::high_resolution_clock::now() - startTime);
             
@@ -168,7 +168,7 @@ public:
             return result;
             
         } catch (const std::exception& e) {
-            // 記錄失敗
+            // 記录失败
             auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(
                 std::chrono::high_resolution_clock::now() - startTime);
             
@@ -181,7 +181,7 @@ public:
         }
     }
     
-    // === 統計信息 ===
+    // === 统計信息 ===
     
     struct ObservabilityStats {
         std::atomic<int> grpcCalls{0};
@@ -201,10 +201,10 @@ public:
     
     // === 配置更新 ===
     
-    // 更新日誌級別
+    // 更新日誌级別
     void updateLogLevel(const std::string& level);
     
-    // 更新指標配置
+    // 更新指标配置
     void updateMetricsConfig(const std::string& port);
     
     // 更新追蹤配置
@@ -216,19 +216,19 @@ private:
     ObservabilityManager(const ObservabilityManager&) = delete;
     ObservabilityManager& operator=(const ObservabilityManager&) = delete;
     
-    // 組件
+    // 组件
     std::unique_ptr<Logger> logger_;
     std::unique_ptr<MetricsCollector> metricsCollector_;
     std::unique_ptr<Tracer> tracer_;
     
-    // 統計信息
+    // 统計信息
     ObservabilityStats stats_;
     
     // 配置
     std::string serviceName_;
     bool initialized_;
     
-    // 內部方法
+    // 内部方法
     void initializeLogger(const std::string& serviceName, const std::string& logLevel);
     void initializeMetrics(const std::string& serviceName, const std::string& port);
     void initializeTracing(const std::string& serviceName, const std::string& endpoint);

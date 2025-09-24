@@ -8,7 +8,7 @@ CircuitBreakerManager& CircuitBreakerManager::getInstance() {
 }
 
 bool CircuitBreakerManager::initialize() {
-    // 設置默認配置
+    // 设置默认配置
     defaultConfig_.failureThreshold = 5;
     defaultConfig_.successThreshold = 3;
     defaultConfig_.timeout = std::chrono::milliseconds(5000);
@@ -31,7 +31,7 @@ CircuitBreaker* CircuitBreakerManager::getCircuitBreaker(const std::string& serv
         return it->second.get();
     }
     
-    // 創建新的熔斷器
+    // 创建新的熔斷器
     auto cb = std::make_unique<CircuitBreaker>(
         config.failureThreshold,
         config.successThreshold,
@@ -112,7 +112,7 @@ std::vector<CircuitBreakerManager::CircuitBreakerStats> CircuitBreakerManager::g
 void CircuitBreakerManager::cleanupInactiveCircuitBreakers() {
     auto now = std::chrono::system_clock::now();
     
-    // 檢查是否需要清理
+    // 检查是否需要清理
     if (now - lastCleanupTime_ < cleanupInterval_) {
         return;
     }
@@ -123,7 +123,7 @@ void CircuitBreakerManager::cleanupInactiveCircuitBreakers() {
     auto it = circuitBreakers_.begin();
     
     while (it != circuitBreakers_.end()) {
-        // 如果熔斷器處於關閉狀態且長時間沒有活動，則清理
+        // 如果熔斷器处於关闭狀態且长時間沒有活动，则清理
         if (it->second->getState() == CircuitBreaker::State::CLOSED) {
             auto lastActivity = std::max(it->second->getLastFailureTime(), 
                                        it->second->getLastSuccessTime());

@@ -13,10 +13,10 @@
 #include "consul/ConsulClient.h"
 #endif
 
-// 配置變更回調函數類型
+// 配置变更回调函数類型
 using ConfigChangeCallback = std::function<void(const std::string& key, const std::string& oldValue, const std::string& newValue)>;
 
-// 配置項
+// 配置项
 struct ConfigItem {
     std::string key;
     std::string value;
@@ -42,43 +42,43 @@ public:
                    const std::string& configPrefix = "chat/",
                    bool enableHotReload = true);
     
-    // 從環境變數加載配置
+    // 從环境变数加载配置
     void loadFromEnvironment();
     
-    // 從 Consul KV 加載配置
+    // 從 Consul KV 加载配置
     bool loadFromConsul();
     
-    // 從 Consul KV 加載特定配置
+    // 從 Consul KV 加载特定配置
     bool loadFromConsul(const std::string& key);
     
-    // 監聽 Consul KV 變更
+    // 监聽 Consul KV 变更
     void watchConsulChanges();
     
-    // 設置 Consul 監聽間隔
+    // 设置 Consul 监聽間隔
     void setConsulWatchInterval(std::chrono::seconds interval);
     
-    // 從文件加載配置
+    // 從文件加载配置
     bool loadFromFile(const std::string& configFile);
     
-    // 獲取配置值
+    // 获取配置值
     std::string getString(const std::string& key, const std::string& defaultValue = "");
     int getInt(const std::string& key, int defaultValue = 0);
     bool getBool(const std::string& key, bool defaultValue = false);
     double getDouble(const std::string& key, double defaultValue = 0.0);
     
-    // 設置配置值
+    // 设置配置值
     void setString(const std::string& key, const std::string& value);
     void setInt(const std::string& key, int value);
     void setBool(const std::string& key, bool value);
     void setDouble(const std::string& key, double value);
     
-    // 檢查配置是否存在
+    // 检查配置是否存在
     bool hasKey(const std::string& key);
     
-    // 獲取所有配置
+    // 获取所有配置
     std::unordered_map<std::string, std::string> getAllConfigs();
     
-    // 註冊配置變更回調
+    // 註冊配置变更回调
     void registerChangeCallback(const std::string& key, ConfigChangeCallback callback);
     void registerGlobalChangeCallback(ConfigChangeCallback callback);
     
@@ -88,10 +88,10 @@ public:
     // 保存配置到文件
     bool saveToFile(const std::string& configFile);
     
-    // 驗證配置
+    // 验证配置
     bool validateConfig();
     
-    // 獲取配置統計
+    // 获取配置统計
     struct ConfigStats {
         int totalConfigs;
         int requiredConfigs;
@@ -103,13 +103,13 @@ public:
     };
     ConfigStats getConfigStats();
     
-    // 啟動配置監聽
+    // 启动配置监聽
     void startWatching();
     
-    // 停止配置監聽
+    // 停止配置监聽
     void stopWatching();
     
-    // 重新加載配置
+    // 重新加载配置
     void reloadConfig();
 
 private:
@@ -118,19 +118,19 @@ private:
     ConfigManager(const ConfigManager&) = delete;
     ConfigManager& operator=(const ConfigManager&) = delete;
     
-    // 配置監聽線程
+    // 配置监聽線程
     void watchThread();
     
-    // 處理配置變更
+    // 处理配置变更
     void handleConfigChange(const std::string& key, const std::string& newValue);
     
     // 解析配置值
     std::string parseConfigValue(const std::string& value);
     
-    // 驗證配置項
+    // 验证配置项
     bool validateConfigItem(const ConfigItem& item);
     
-    // 從字符串轉換為其他類型
+    // 從字符串转换為其他類型
     int stringToInt(const std::string& str, int defaultValue = 0);
     bool stringToBool(const std::string& str, bool defaultValue = false);
     double stringToDouble(const std::string& str, double defaultValue = 0.0);
@@ -143,7 +143,7 @@ private:
     std::unordered_map<std::string, ConfigItem> configs_;
     std::mutex configsMutex_;
     
-    // 回調函數
+    // 回调函数
     std::unordered_map<std::string, std::vector<ConfigChangeCallback>> keyCallbacks_;
     std::vector<ConfigChangeCallback> globalCallbacks_;
     std::mutex callbacksMutex_;
@@ -158,12 +158,12 @@ private:
     std::string configPrefix_;
     bool enableHotReload_;
     
-    // 監聽線程
+    // 监聽線程
     std::atomic<bool> watching_;
     std::thread watchThread_;
     std::chrono::seconds watchInterval_;
     
-    // 統計
+    // 统計
     std::atomic<int> totalConfigs_;
     std::atomic<int> requiredConfigs_;
     std::chrono::system_clock::time_point lastUpdate_;

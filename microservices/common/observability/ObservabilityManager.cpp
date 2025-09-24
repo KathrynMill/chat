@@ -15,7 +15,7 @@ bool ObservabilityManager::initialize(const std::string& serviceName,
     serviceName_ = serviceName;
     initialized_ = false;
     
-    // 重置統計信息
+    // 重置统計信息
     stats_ = ObservabilityStats{};
     stats_.serviceName = serviceName;
     stats_.logLevel = logLevel;
@@ -23,10 +23,10 @@ bool ObservabilityManager::initialize(const std::string& serviceName,
     stats_.jaegerEnabled = !jaegerEndpoint.empty();
     
     try {
-        // 初始化日誌系統
+        // 初始化日誌系统
         initializeLogger(serviceName, logLevel);
         
-        // 初始化指標收集
+        // 初始化指标收集
         initializeMetrics(serviceName, metricsPort);
         
         // 初始化分散式追蹤
@@ -34,7 +34,7 @@ bool ObservabilityManager::initialize(const std::string& serviceName,
         
         initialized_ = true;
         
-        // 記錄初始化成功
+        // 記录初始化成功
         logSystemEvent("observability_init", "info", 
                       "Observability system initialized for service: " + serviceName);
         
@@ -52,11 +52,11 @@ void ObservabilityManager::shutdown() {
         return;
     }
     
-    // 記錄關閉事件
+    // 記录关闭事件
     logSystemEvent("observability_shutdown", "info", 
                   "Observability system shutting down for service: " + serviceName_);
     
-    // 關閉組件
+    // 关闭组件
     if (logger_) {
         logger_->shutdown();
     }
@@ -73,7 +73,7 @@ void ObservabilityManager::shutdown() {
     std::cout << "Observability system shutdown for service: " << serviceName_ << "\n";
 }
 
-// === 日誌記錄實現 ===
+// === 日誌記录实现 ===
 
 void ObservabilityManager::logGrpcCall(const std::string& service, 
                                       const std::string& method,
@@ -171,7 +171,7 @@ void ObservabilityManager::logSystemEvent(const std::string& event,
     logger_->log(event, level, message, context);
 }
 
-// === 指標收集實現 ===
+// === 指标收集实现 ===
 
 void ObservabilityManager::recordGrpcMetrics(const std::string& service,
                                             const std::string& method,
@@ -234,7 +234,7 @@ void ObservabilityManager::recordSystemMetrics(const std::string& metric,
     metricsCollector_->recordGauge(metric, value, labels);
 }
 
-// === 分散式追蹤實現 ===
+// === 分散式追蹤实现 ===
 
 std::string ObservabilityManager::startSpan(const std::string& operation,
                                            const std::string& parentSpanId,
@@ -280,7 +280,7 @@ void ObservabilityManager::addSpanEvent(const std::string& spanId,
     tracer_->addEvent(spanId, event, attributes);
 }
 
-// === 統計信息 ===
+// === 统計信息 ===
 
 ObservabilityManager::ObservabilityStats ObservabilityManager::getStats() {
     return stats_;
@@ -309,7 +309,7 @@ void ObservabilityManager::updateTracingConfig(const std::string& endpoint) {
     }
 }
 
-// === 私有方法實現 ===
+// === 私有方法实现 ===
 
 void ObservabilityManager::initializeLogger(const std::string& serviceName, const std::string& logLevel) {
     logger_ = std::make_unique<Logger>();

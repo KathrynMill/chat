@@ -10,7 +10,7 @@
 #include "jwt/JwtValidator.h"
 #endif
 
-// 用戶會話信息
+// 用户會话信息
 struct UserSession {
     std::string userId;
     std::string username;
@@ -29,7 +29,7 @@ struct UserSession {
     }
 };
 
-// 認證結果
+// 认证結果
 struct AuthResult {
     bool success;
     std::string userId;
@@ -43,20 +43,20 @@ struct AuthResult {
         : success(s), userId(uid), username(uname) {}
 };
 
-// 認證管理器
+// 认证管理器
 class AuthManager {
 public:
     static AuthManager& getInstance();
     
-    // 初始化認證管理器
+    // 初始化认证管理器
     bool initialize(const std::string& jwtSecret, 
                    int tokenExpirationMinutes = 60,
                    int sessionTimeoutMinutes = 30);
     
-    // 用戶登入認證
+    // 用户登入认证
     AuthResult authenticate(const std::string& username, const std::string& password);
     
-    // Token 驗證
+    // Token 验证
     AuthResult validateToken(const std::string& token);
     
     // 刷新 Token
@@ -65,13 +65,13 @@ public:
     // 登出
     bool logout(const std::string& token);
     
-    // 檢查權限
+    // 检查权限
     bool hasPermission(const std::string& token, const std::string& permission);
     
-    // 獲取用戶會話
+    // 获取用户會话
     UserSession* getSession(const std::string& token);
     
-    // 創建 JWT Token
+    // 创建 JWT Token
     std::string createToken(const std::string& userId, 
                            const std::string& username,
                            const std::vector<std::string>& permissions = {},
@@ -83,10 +83,10 @@ public:
     // 從 gRPC metadata 提取 Token
     std::string extractTokenFromGrpcMetadata(const std::multimap<std::string, std::string>& metadata);
     
-    // 清理過期會話
+    // 清理过期會话
     void cleanupExpiredSessions();
     
-    // 獲取會話統計
+    // 获取會话统計
     struct SessionStats {
         int totalSessions;
         int activeSessions;
@@ -101,7 +101,7 @@ private:
     AuthManager(const AuthManager&) = delete;
     AuthManager& operator=(const AuthManager&) = delete;
     
-    // 驗證用戶憑證（這裡應該調用 UserService）
+    // 验证用户憑证（這裡應該调用 UserService）
     bool validateCredentials(const std::string& username, const std::string& password, 
                            std::string& userId, std::vector<std::string>& permissions);
     
@@ -114,7 +114,7 @@ private:
         std::string username;
         std::vector<std::string> permissions;
         std::unordered_map<std::string, std::string> metadata;
-        long exp; // 過期時間
+        long exp; // 过期時間
     };
     JwtPayload parseJwtPayload(const std::string& token);
     
@@ -122,7 +122,7 @@ private:
     std::unique_ptr<JwtValidator> jwtValidator_;
 #endif
     
-    // 會話管理
+    // 會话管理
     std::unordered_map<std::string, std::unique_ptr<UserSession>> sessions_;
     std::mutex sessionsMutex_;
     
@@ -131,7 +131,7 @@ private:
     int tokenExpirationMinutes_;
     int sessionTimeoutMinutes_;
     
-    // 統計信息
+    // 统計信息
     std::atomic<int> totalSessions_;
     std::atomic<int> activeSessions_;
     std::chrono::system_clock::time_point lastCleanupTime_;

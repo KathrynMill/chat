@@ -23,7 +23,7 @@ bool MetricsCollector::initialize(const std::string& serviceName, int port) {
     try {
         registry_ = std::make_shared<prometheus::Registry>();
         
-        // 創建指標
+        // 创建指标
         grpc_calls_total_ = prometheus::BuildCounter()
             .Name("grpc_calls_total")
             .Help("Total number of gRPC calls")
@@ -69,7 +69,7 @@ bool MetricsCollector::initialize(const std::string& serviceName, int port) {
             .Help("Number of online users")
             .Register(*registry_);
         
-        // 啟動 HTTP 服務器
+        // 启动 HTTP 服务器
         exposer_ = std::make_unique<prometheus::Exposer>("0.0.0.0:" + std::to_string(port));
         exposer_->RegisterCollectable(registry_);
         
@@ -94,7 +94,7 @@ void MetricsCollector::incrementCounter(const std::string& name,
 #ifdef HAVE_PROMETHEUS
     if (!initialized_) return;
     
-    // 簡化版實現，實際應該根據 labels 創建對應的指標
+    // 簡化版实现，实際應該根据 labels 创建對應的指标
     auto& counter = grpc_calls_total_.Add(labels);
     counter.Increment(value);
 #else
@@ -137,7 +137,7 @@ void MetricsCollector::observeHistogram(const std::string& name,
 #ifdef HAVE_PROMETHEUS
     if (!initialized_) return;
     
-    // 簡化版實現
+    // 簡化版实现
     auto& counter = grpc_call_duration_seconds_.Add(labels);
     counter.Increment(value);
 #else
@@ -210,7 +210,7 @@ std::string MetricsCollector::getMetrics() {
 #ifdef HAVE_PROMETHEUS
     if (!initialized_) return "";
     
-    // 簡化版實現，實際應該序列化所有指標
+    // 簡化版实现，实際應該序列化所有指标
     return "# Prometheus metrics endpoint available at :" + std::to_string(port_) + "/metrics\n";
 #else
     std::lock_guard<std::mutex> lock(metricsMutex_);

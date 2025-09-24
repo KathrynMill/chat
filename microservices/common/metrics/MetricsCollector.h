@@ -17,15 +17,15 @@ class MetricsCollector {
 public:
     static MetricsCollector& getInstance();
     
-    // 初始化指標收集器
+    // 初始化指标收集器
     bool initialize(const std::string& serviceName, int port = 8080);
     
-    // 計數器指標
+    // 計数器指标
     void incrementCounter(const std::string& name, 
                          const std::unordered_map<std::string, std::string>& labels = {},
                          double value = 1.0);
     
-    // 計量器指標
+    // 計量器指标
     void setGauge(const std::string& name, 
                   const std::unordered_map<std::string, std::string>& labels = {},
                   double value = 0.0);
@@ -34,12 +34,12 @@ public:
                   const std::unordered_map<std::string, std::string>& labels = {},
                   double value = 1.0);
     
-    // 直方圖指標
+    // 直方圖指标
     void observeHistogram(const std::string& name, 
                          const std::unordered_map<std::string, std::string>& labels = {},
                          double value = 0.0);
     
-    // 業務指標
+    // 業务指标
     void recordGrpcCall(const std::string& service, const std::string& method, 
                        bool success, double durationMs);
     
@@ -54,7 +54,7 @@ public:
     
     void recordOnlineUsers(int count);
     
-    // 獲取指標數據（用於測試或自定義端點）
+    // 获取指标数据（用於测试或自定義端點）
     std::string getMetrics();
 
 private:
@@ -67,7 +67,7 @@ private:
     std::shared_ptr<prometheus::Registry> registry_;
     std::unique_ptr<prometheus::Exposer> exposer_;
     
-    // 預定義指標
+    // 預定義指标
     prometheus::Family<prometheus::Counter>& grpc_calls_total_;
     prometheus::Family<prometheus::Counter>& grpc_call_duration_seconds_;
     prometheus::Family<prometheus::Counter>& http_requests_total_;
@@ -83,7 +83,7 @@ private:
     std::string serviceName_;
     int port_;
     
-    // 簡化版指標（當 Prometheus 不可用時）
+    // 簡化版指标（當 Prometheus 不可用時）
     std::unordered_map<std::string, std::atomic<double>> simpleCounters_;
     std::unordered_map<std::string, std::atomic<double>> simpleGauges_;
     std::mutex metricsMutex_;

@@ -1,7 +1,7 @@
 #!/bin/bash
 
-# 企業級微服務框架構建腳本
-# 支援完整的企業級功能構建
+# 企業级微服务框架构建腳本
+# 支援完整的企業级功能构建
 
 set -e
 
@@ -12,7 +12,7 @@ YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
-# 日誌函數
+# 日誌函数
 log_info() {
     echo -e "${BLUE}[INFO]${NC} $1"
 }
@@ -29,39 +29,39 @@ log_error() {
     echo -e "${RED}[ERROR]${NC} $1"
 }
 
-# 檢查依賴
+# 检查依賴
 check_dependencies() {
-    log_info "檢查構建依賴..."
+    log_info "检查构建依賴..."
     
-    # 檢查 CMake
+    # 检查 CMake
     if ! command -v cmake &> /dev/null; then
-        log_error "CMake 未安裝，請先運行: ./install_micro_deps.sh"
+        log_error "CMake 未安裝，請先运行: ./install_micro_deps.sh"
         exit 1
     fi
     
-    # 檢查編譯器
+    # 检查編譯器
     if ! command -v g++ &> /dev/null; then
-        log_error "g++ 編譯器未安裝，請先運行: ./install_micro_deps.sh"
+        log_error "g++ 編譯器未安裝，請先运行: ./install_micro_deps.sh"
         exit 1
     fi
     
-    log_success "構建依賴檢查完成"
+    log_success "构建依賴检查完成"
 }
 
-# 清理構建目錄
+# 清理构建目录
 clean_build() {
-    log_info "清理構建目錄..."
+    log_info "清理构建目录..."
     rm -rf build/*
-    log_success "構建目錄已清理"
+    log_success "构建目录已清理"
 }
 
-# 配置構建
+# 配置构建
 configure_build() {
-    log_info "配置企業級構建..."
+    log_info "配置企業级构建..."
     
     cd build
     
-    # 配置 CMake，啟用所有企業級功能
+    # 配置 CMake，启用所有企業级功能
     cmake .. \
         -DBUILD_MICROSERVICES=ON \
         -DCMAKE_BUILD_TYPE=Release \
@@ -72,61 +72,61 @@ configure_build() {
     if [ $? -eq 0 ]; then
         log_success "CMake 配置成功"
     else
-        log_error "CMake 配置失敗"
+        log_error "CMake 配置失败"
         exit 1
     fi
     
     cd ..
 }
 
-# 編譯項目
+# 編譯项目
 build_project() {
-    log_info "開始編譯企業級微服務框架..."
+    log_info "开始編譯企業级微服务框架..."
     
     cd build
     
-    # 使用所有可用核心進行並行編譯
+    # 使用所有可用核心进行並行編譯
     CORES=$(nproc)
-    log_info "使用 $CORES 個核心進行並行編譯"
+    log_info "使用 $CORES 個核心进行並行編譯"
     
     make -j$CORES
     
     if [ $? -eq 0 ]; then
         log_success "編譯成功完成"
     else
-        log_error "編譯失敗"
+        log_error "編譯失败"
         exit 1
     fi
     
     cd ..
 }
 
-# 運行測試
+# 运行测试
 run_tests() {
-    log_info "運行企業級功能測試..."
+    log_info "运行企業级功能测试..."
     
-    # 檢查是否有測試可執行文件
+    # 检查是否有测试可执行文件
     if [ -f "build/microservices/common/examples/EnterpriseFeaturesExample" ]; then
-        log_info "運行企業級功能示例..."
+        log_info "运行企業级功能示例..."
         ./build/microservices/common/examples/EnterpriseFeaturesExample
     fi
     
     if [ -f "build/microservices/common/examples/AdvancedFeaturesExample" ]; then
-        log_info "運行進階功能示例..."
+        log_info "运行进阶功能示例..."
         ./build/microservices/common/examples/AdvancedFeaturesExample
     fi
     
-    log_success "測試完成"
+    log_success "测试完成"
 }
 
-# 顯示構建結果
+# 顯示构建結果
 show_results() {
-    log_info "構建結果："
+    log_info "构建結果："
     echo ""
     
-    # 顯示生成的可執行文件
+    # 顯示生成的可执行文件
     if [ -d "build/microservices" ]; then
-        echo "📁 微服務可執行文件："
+        echo "📁 微服务可执行文件："
         find build/microservices -name "*.so" -o -name "*Service" -o -name "*Gateway" | while read file; do
             echo "  ✅ $(basename $file)"
         done
@@ -142,31 +142,31 @@ show_results() {
     fi
     
     echo ""
-    log_success "企業級微服務框架構建完成！"
+    log_success "企業级微服务框架构建完成！"
     echo ""
     echo "🚀 下一步："
-    echo "  1. 運行企業級部署: ./deploy/deploy.sh"
-    echo "  2. 運行系統監控: ./deploy/monitor.sh"
-    echo "  3. 運行端到端測試: ./deploy/test.sh"
+    echo "  1. 运行企業级部署: ./deploy/deploy.sh"
+    echo "  2. 运行系统监控: ./deploy/monitor.sh"
+    echo "  3. 运行端到端测试: ./deploy/test.sh"
     echo "  4. 查看完整文檔: cat ADVANCED_ENTERPRISE_FEATURES.md"
 }
 
-# 主函數
+# 主函数
 main() {
-    echo "🏗️  企業級微服務框架構建腳本"
+    echo "🏗️  企業级微服务框架构建腳本"
     echo "=============================="
     echo ""
     
-    # 檢查是否在正確的目錄
+    # 检查是否在正確的目录
     if [ ! -f "CMakeLists.txt" ]; then
-        log_error "請在項目根目錄運行此腳本"
+        log_error "請在项目根目录运行此腳本"
         exit 1
     fi
     
-    # 創建構建目錄
+    # 创建构建目录
     mkdir -p build
     
-    # 執行構建步驟
+    # 执行构建步骤
     check_dependencies
     clean_build
     configure_build
@@ -175,5 +175,5 @@ main() {
     show_results
 }
 
-# 運行主函數
+# 运行主函数
 main "$@"

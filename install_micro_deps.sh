@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# 適用：Ubuntu/Debian 系（需要 sudo 權限）
-# 安裝：gRPC/Protobuf、MariaDB client、Kafka(librdkafka) 基礎、Redis(hiredis)，
+# 適用：Ubuntu/Debian 系（需要 sudo 权限）
+# 安裝：gRPC/Protobuf、MariaDB client、Kafka(librdkafka) 基础、Redis(hiredis)，
 # 以及從源碼安裝 cppkafka、redis-plus-plus、muduo（可選）。
 
 echo "[1/7] 更新套件索引..."
@@ -18,7 +18,7 @@ sudo apt-get install -y \
   libssl-dev libcurl4-openssl-dev \
   nlohmann-json3-dev
 
-echo "[3/7] 安裝 cppkafka（若已安裝可跳過）..."
+echo "[3/7] 安裝 cppkafka（若已安裝可跳过）..."
 if ! pkg-config --exists cppkafka 2>/dev/null; then
   TMP_DIR=$(mktemp -d)
   pushd "$TMP_DIR" >/dev/null
@@ -31,10 +31,10 @@ if ! pkg-config --exists cppkafka 2>/dev/null; then
   popd >/dev/null
   rm -rf "$TMP_DIR"
 else
-  echo "cppkafka 已存在，跳過。"
+  echo "cppkafka 已存在，跳过。"
 fi
 
-echo "[4/7] 安裝 redis-plus-plus（若已安裝可跳過）..."
+echo "[4/7] 安裝 redis-plus-plus（若已安裝可跳过）..."
 if ! pkg-config --exists redis++ 2>/dev/null; then
   TMP_DIR=$(mktemp -d)
   pushd "$TMP_DIR" >/dev/null
@@ -47,10 +47,10 @@ if ! pkg-config --exists redis++ 2>/dev/null; then
   popd >/dev/null
   rm -rf "$TMP_DIR"
 else
-  echo "redis-plus-plus 已存在，跳過。"
+  echo "redis-plus-plus 已存在，跳过。"
 fi
 
-echo "[5/7] 安裝 muduo（可選，若已安裝可跳過）..."
+echo "[5/7] 安裝 muduo（可選，若已安裝可跳过）..."
 if [ ! -f "/usr/local/lib/libmuduo_net.so" ] && [ ! -f "/usr/lib/libmuduo_net.so" ]; then
   TMP_DIR=$(mktemp -d)
   pushd "$TMP_DIR" >/dev/null
@@ -63,10 +63,10 @@ if [ ! -f "/usr/local/lib/libmuduo_net.so" ] && [ ! -f "/usr/lib/libmuduo_net.so
   popd >/dev/null
   rm -rf "$TMP_DIR"
 else
-  echo "muduo 已存在，跳過。"
+  echo "muduo 已存在，跳过。"
 fi
 
-echo "[6/7] 安裝 spdlog（結構化日誌庫）..."
+echo "[6/7] 安裝 spdlog（結构化日誌庫）..."
 if ! pkg-config --exists spdlog 2>/dev/null; then
   TMP_DIR=$(mktemp -d)
   pushd "$TMP_DIR" >/dev/null
@@ -79,11 +79,11 @@ if ! pkg-config --exists spdlog 2>/dev/null; then
   popd >/dev/null
   rm -rf "$TMP_DIR"
 else
-  echo "spdlog 已存在，跳過。"
+  echo "spdlog 已存在，跳过。"
 fi
 
-echo "[7/7] 完成。建議執行：sudo ldconfig"
-echo "完成後可在專案根執行：mkdir -p build && cd build && cmake -DBUILD_MICROSERVICES=ON .. && make -j$(nproc)"
+echo "[7/7] 完成。建議执行：sudo ldconfig"
+echo "完成後可在專案根执行：mkdir -p build && cd build && cmake -DBUILD_MICROSERVICES=ON .. && make -j$(nproc)"
 
 
 

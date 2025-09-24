@@ -3,7 +3,7 @@
 int main() {
     crow::SimpleApp app;
 
-    // 簡單 HTTP 路由
+    // 簡单 HTTP 路由
     CROW_ROUTE(app, "/")([](){ return "Hello, Crow minimal demo!"; });
 
     // WebSocket echo demo

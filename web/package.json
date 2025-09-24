@@ -1,7 +1,7 @@
 {
   "name": "chat-web-app",
   "version": "1.0.0",
-  "description": "網頁版聊天應用程式",
+  "description": "网頁版聊天應用程式",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",

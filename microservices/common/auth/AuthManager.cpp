@@ -45,7 +45,7 @@ bool AuthManager::initialize(const std::string& jwtSecret,
 AuthResult AuthManager::authenticate(const std::string& username, const std::string& password) {
     AuthResult result;
     
-    // 驗證用戶憑證
+    // 验证用户憑证
     std::string userId;
     std::vector<std::string> permissions;
     
@@ -55,10 +55,10 @@ AuthResult AuthManager::authenticate(const std::string& username, const std::str
         return result;
     }
     
-    // 創建會話
+    // 创建會话
     std::string token = createToken(userId, username, permissions);
     
-    // 存儲會話
+    // 存儲會话
     {
         std::lock_guard<std::mutex> lock(sessionsMutex_);
         auto session = std::make_unique<UserSession>();
@@ -91,13 +91,13 @@ AuthResult AuthManager::validateToken(const std::string& token) {
         return result;
     }
     
-    // 檢查會話緩存
+    // 检查會话緩存
     {
         std::lock_guard<std::mutex> lock(sessionsMutex_);
         auto it = sessions_.find(token);
         if (it != sessions_.end()) {
             if (it->second->isExpired()) {
-                // 會話過期，清理
+                // 會话过期，清理
                 sessions_.erase(it);
                 activeSessions_--;
                 result.success = false;
@@ -114,13 +114,13 @@ AuthResult AuthManager::validateToken(const std::string& token) {
         }
     }
     
-    // 如果會話緩存中沒有，嘗試驗證 JWT
+    // 如果會话緩存中沒有，嘗试验证 JWT
 #ifdef HAVE_OPENSSL
     if (jwtValidator_) {
         try {
             auto payload = parseJwtPayload(token);
             
-            // 檢查過期時間
+            // 检查过期時間
             auto now = std::chrono::system_clock::now();
             auto expTime = std::chrono::system_clock::from_time_t(payload.exp);
             
@@ -156,21 +156,21 @@ std::string AuthManager::refreshToken(const std::string& oldToken) {
         return "";
     }
     
-    // 創建新 token
+    // 创建新 token
     std::string newToken = createToken(authResult.userId, authResult.username, 
                                      authResult.permissions, authResult.metadata);
     
-    // 更新會話
+    // 更新會话
     {
         std::lock_guard<std::mutex> lock(sessionsMutex_);
         auto it = sessions_.find(oldToken);
         if (it != sessions_.end()) {
-            // 更新現有會話
+            // 更新现有會话
             it->second->token = newToken;
             it->second->expiresAt = std::chrono::system_clock::now() + 
                                    std::chrono::minutes(sessionTimeoutMinutes_);
             
-            // 移動到新 token
+            // 移动到新 token
             sessions_[newToken] = std::move(it->second);
             sessions_.erase(it);
         }
@@ -219,19 +219,19 @@ std::string AuthManager::createToken(const std::string& userId,
 #ifdef HAVE_OPENSSL
     if (jwtValidator_) {
         try {
-            // 創建 JWT payload
+            // 创建 JWT payload
             auto now = std::chrono::system_clock::now();
             auto exp = now + std::chrono::minutes(tokenExpirationMinutes_);
             
-            // 簡化版 JWT 創建（實際應該使用完整的 JWT 庫）
+            // 簡化版 JWT 创建（实際應該使用完整的 JWT 庫）
             std::ostringstream payload;
             payload << "{\"sub\":\"" << userId << "\","
                     << "\"username\":\"" << username << "\","
                     << "\"exp\":" << std::chrono::duration_cast<std::chrono::seconds>(exp.time_since_epoch()).count()
                     << "}";
             
-            // 這裡應該使用 JWT 庫來創建和簽名 token
-            // 簡化實現：返回一個偽造的 token
+            // 這裡應該使用 JWT 庫來创建和簽名 token
+            // 簡化实现：返回一個偽造的 token
             return "jwt." + generateRandomToken() + "." + generateRandomToken();
         } catch (const std::exception& e) {
             std::cerr << "Failed to create JWT token: " << e.what() << "\n";
@@ -240,12 +240,12 @@ std::string AuthManager::createToken(const std::string& userId,
     }
 #endif
     
-    // 如果沒有 JWT 支持，返回簡單的隨機 token
+    // 如果沒有 JWT 支持，返回簡单的隨機 token
     return generateRandomToken();
 }
 
 std::string AuthManager::extractTokenFromHeaders(const std::unordered_map<std::string, std::string>& headers) {
-    // 檢查 Authorization 頭
+    // 检查 Authorization 頭
     auto it = headers.find("Authorization");
     if (it != headers.end()) {
         const std::string& auth = it->second;
@@ -254,7 +254,7 @@ std::string AuthManager::extractTokenFromHeaders(const std::unordered_map<std::s
         }
     }
     
-    // 檢查 X-Auth-Token 頭
+    // 检查 X-Auth-Token 頭
     it = headers.find("X-Auth-Token");
     if (it != headers.end()) {
         return it->second;
@@ -264,7 +264,7 @@ std::string AuthManager::extractTokenFromHeaders(const std::unordered_map<std::s
 }
 
 std::string AuthManager::extractTokenFromGrpcMetadata(const std::multimap<std::string, std::string>& metadata) {
-    // 檢查 authorization metadata
+    // 检查 authorization metadata
     auto it = metadata.find("authorization");
     if (it != metadata.end()) {
         const std::string& auth = it->second;
@@ -273,7 +273,7 @@ std::string AuthManager::extractTokenFromGrpcMetadata(const std::multimap<std::s
         }
     }
     
-    // 檢查 x-auth-token metadata
+    // 检查 x-auth-token metadata
     it = metadata.find("x-auth-token");
     if (it != metadata.end()) {
         return it->second;
@@ -320,16 +320,16 @@ AuthManager::SessionStats AuthManager::getSessionStats() {
 
 bool AuthManager::validateCredentials(const std::string& username, const std::string& password, 
                                     std::string& userId, std::vector<std::string>& permissions) {
-    // 這裡應該調用 UserService 來驗證憑證
-    // 簡化實現：假設驗證成功
+    // 這裡應該调用 UserService 來验证憑证
+    // 簡化实现：假设验证成功
     
     if (username.empty() || password.empty()) {
         return false;
     }
     
-    // 模擬用戶驗證
+    // 模擬用户验证
     userId = "user_" + username;
-    permissions = {"read", "write", "chat"}; // 默認權限
+    permissions = {"read", "write", "chat"}; // 默认权限
     
     return true;
 }
@@ -355,10 +355,10 @@ std::string AuthManager::generateRandomToken() {
 AuthManager::JwtPayload AuthManager::parseJwtPayload(const std::string& token) {
     JwtPayload payload;
     
-    // 簡化實現：解析 JWT token
-    // 實際實現中應該使用完整的 JWT 庫
+    // 簡化实现：解析 JWT token
+    // 实際实现中應該使用完整的 JWT 庫
     
-    // 這裡只是示例，實際應該解析 JWT 的 payload 部分
+    // 這裡只是示例，实際應該解析 JWT 的 payload 部分
     payload.userId = "parsed_user_id";
     payload.username = "parsed_username";
     payload.exp = std::chrono::duration_cast<std::chrono::seconds>(

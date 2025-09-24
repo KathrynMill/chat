@@ -1,7 +1,7 @@
 version: '3.8'
 
 services:
-  # 基礎設施服務
+  # 基础设施服务
   consul:
     image: consul:1.16
     container_name: chat-consul
@@ -77,7 +77,7 @@ services:
       timeout: 10s
       retries: 3
 
-  # 微服務
+  # 微服务
   user-service:
     build:
       context: .
@@ -184,7 +184,7 @@ services:
       timeout: 10s
       retries: 3
 
-  # 資料庫
+  # 资料庫
   mariadb:
     image: mariadb:10.11
     container_name: chat-mariadb

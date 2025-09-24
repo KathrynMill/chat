@@ -5,7 +5,7 @@
 #include <filesystem>
 #include <algorithm>
 
-// TextFormatter 實現
+// TextFormatter 实现
 std::string TextFormatter::format(const LogEvent& event) {
     std::ostringstream oss;
     
@@ -20,7 +20,7 @@ std::string TextFormatter::format(const LogEvent& event) {
     // 線程 ID
     oss << " [" << event.threadId << "]";
     
-    // 日誌級別
+    // 日誌级別
     std::string levelStr;
     switch (event.level) {
         case LogLevel::TRACE: levelStr = "TRACE"; break;
@@ -37,7 +37,7 @@ std::string TextFormatter::format(const LogEvent& event) {
         oss << " [" << event.sourceFile << ":" << event.sourceLine << "]";
     }
     
-    // 函數名
+    // 函数名
     if (!event.function.empty()) {
         oss << " [" << event.function << "]";
     }
@@ -60,7 +60,7 @@ std::string TextFormatter::format(const LogEvent& event) {
     return oss.str();
 }
 
-// JsonFormatter 實現
+// JsonFormatter 实现
 std::string JsonFormatter::format(const LogEvent& event) {
     std::ostringstream oss;
     
@@ -77,7 +77,7 @@ std::string JsonFormatter::format(const LogEvent& event) {
     // 線程 ID
     oss << ",\"thread_id\":\"" << event.threadId << "\"";
     
-    // 日誌級別
+    // 日誌级別
     std::string levelStr;
     switch (event.level) {
         case LogLevel::TRACE: levelStr = "TRACE"; break;
@@ -95,7 +95,7 @@ std::string JsonFormatter::format(const LogEvent& event) {
         oss << ",\"source_line\":" << event.sourceLine;
     }
     
-    // 函數名
+    // 函数名
     if (!event.function.empty()) {
         oss << ",\"function\":\"" << event.function << "\"";
     }
@@ -119,7 +119,7 @@ std::string JsonFormatter::format(const LogEvent& event) {
     return oss.str();
 }
 
-// StructuredFormatter 實現
+// StructuredFormatter 实现
 std::string StructuredFormatter::format(const LogEvent& event) {
     std::ostringstream oss;
     
@@ -127,7 +127,7 @@ std::string StructuredFormatter::format(const LogEvent& event) {
     auto time_t = std::chrono::system_clock::to_time_t(event.timestamp);
     oss << std::put_time(std::localtime(&time_t), "%Y-%m-%d %H:%M:%S");
     
-    // 日誌級別
+    // 日誌级別
     std::string levelStr;
     switch (event.level) {
         case LogLevel::TRACE: levelStr = "TRACE"; break;
@@ -149,7 +149,7 @@ std::string StructuredFormatter::format(const LogEvent& event) {
     return oss.str();
 }
 
-// ConsoleAppender 實現
+// ConsoleAppender 实现
 ConsoleAppender::ConsoleAppender(bool enableColor) : enableColor_(enableColor) {}
 
 void ConsoleAppender::append(const LogEvent& event) {
@@ -183,11 +183,11 @@ std::string ConsoleAppender::getColorCode(LogLevel level) {
     }
 }
 
-// FileAppender 實現
+// FileAppender 实现
 FileAppender::FileAppender(const std::string& filename, size_t maxFileSize, int maxFiles)
     : filename_(filename), maxFileSize_(maxFileSize), maxFiles_(maxFiles), currentFileSize_(0) {
     
-    // 確保目錄存在
+    // 確保目录存在
     std::filesystem::path filePath(filename_);
     std::filesystem::create_directories(filePath.parent_path());
     
@@ -229,7 +229,7 @@ void FileAppender::rotateFile() {
         file_.close();
     }
     
-    // 重命名現有文件
+    // 重命名现有文件
     for (int i = maxFiles_ - 1; i > 0; --i) {
         std::string oldFile = filename_ + "." + std::to_string(i);
         std::string newFile = filename_ + "." + std::to_string(i + 1);
@@ -245,7 +245,7 @@ void FileAppender::rotateFile() {
         std::filesystem::rename(filename_, backupFile);
     }
     
-    // 打開新文件
+    // 打开新文件
     file_.open(filename_, std::ios::app);
     currentFileSize_ = 0;
 }
@@ -259,7 +259,7 @@ std::string FileAppender::getTimestampString() {
     return oss.str();
 }
 
-// RemoteAppender 實現
+// RemoteAppender 实现
 RemoteAppender::RemoteAppender(const std::string& endpoint) : endpoint_(endpoint) {}
 
 void RemoteAppender::append(const LogEvent& event) {
@@ -272,8 +272,8 @@ void RemoteAppender::append(const LogEvent& event) {
 void RemoteAppender::flush() {
     std::lock_guard<std::mutex> lock(queueMutex_);
     
-    // 這裡應該發送到遠程端點
-    // 簡化實現：清空隊列
+    // 這裡應該发送到遠程端點
+    // 簡化实现：清空隊列
     while (!logQueue_.empty()) {
         logQueue_.pop();
     }
@@ -283,7 +283,7 @@ void RemoteAppender::close() {
     flush();
 }
 
-// Logger 實現
+// Logger 实现
 Logger& Logger::getInstance() {
     static Logger instance;
     return instance;
@@ -294,7 +294,7 @@ bool Logger::initialize(const LogConfig& config) {
     
     config_ = config;
     
-    // 創建格式化器
+    // 创建格式化器
     switch (config_.format) {
         case LogFormat::TEXT:
             formatter_ = std::make_shared<TextFormatter>();
@@ -307,7 +307,7 @@ bool Logger::initialize(const LogConfig& config) {
             break;
     }
     
-    // 創建輸出器
+    // 创建輸出器
     switch (config_.output) {
         case LogOutput::CONSOLE:
             addAppender(std::make_shared<ConsoleAppender>(config_.enableColor));
@@ -322,7 +322,7 @@ bool Logger::initialize(const LogConfig& config) {
             break;
     }
     
-    // 啟動異步日誌
+    // 启动異步日誌
     if (config_.enableAsync) {
         startAsyncLogging();
     }
@@ -513,7 +513,7 @@ void Logger::asyncLoggingThread() {
 }
 
 void Logger::processLog(const LogEvent& event) {
-    // 更新統計
+    // 更新统計
     stats_.totalLogs++;
     switch (event.level) {
         case LogLevel::TRACE: stats_.traceLogs++; break;
@@ -524,13 +524,13 @@ void Logger::processLog(const LogEvent& event) {
         case LogLevel::FATAL: stats_.fatalLogs++; break;
     }
     
-    // 發送到所有輸出器
+    // 发送到所有輸出器
     std::lock_guard<std::mutex> lock(appendersMutex_);
     for (auto& appender : appenders_) {
         try {
             appender->append(event);
         } catch (const std::exception& e) {
-            // 日誌輸出失敗，記錄到統計中
+            // 日誌輸出失败，記录到统計中
             stats_.droppedLogs++;
         }
     }

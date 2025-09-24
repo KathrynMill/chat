@@ -36,7 +36,7 @@ int main(int argc, char** argv) {
 #endif
     server->Wait();
 #else
-    std::cout << "UserService built without gRPC. 請安裝依賴或執行 install_micro_deps.sh。\n";
+    std::cout << "UserService built without gRPC. 請安裝依賴或执行 install_micro_deps.sh。\n";
 #endif
     return 0;
 }

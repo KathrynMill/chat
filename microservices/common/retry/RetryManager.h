@@ -6,30 +6,30 @@
 #include <exception>
 #include <memory>
 
-// 重試策略
+// 重试策略
 enum class RetryStrategy {
     FIXED_DELAY,        // 固定延遲
-    EXPONENTIAL_BACKOFF, // 指數退避
+    EXPONENTIAL_BACKOFF, // 指数退避
     LINEAR_BACKOFF      // 線性退避
 };
 
-// 重試配置
+// 重试配置
 struct RetryConfig {
-    int maxAttempts = 3;                                    // 最大重試次數
+    int maxAttempts = 3;                                    // 最大重试次数
     std::chrono::milliseconds initialDelay = std::chrono::milliseconds(100);  // 初始延遲
     std::chrono::milliseconds maxDelay = std::chrono::milliseconds(5000);     // 最大延遲
-    double backoffMultiplier = 2.0;                         // 退避倍數
-    RetryStrategy strategy = RetryStrategy::EXPONENTIAL_BACKOFF;  // 重試策略
+    double backoffMultiplier = 2.0;                         // 退避倍数
+    RetryStrategy strategy = RetryStrategy::EXPONENTIAL_BACKOFF;  // 重试策略
     std::chrono::milliseconds timeout = std::chrono::milliseconds(10000);     // 超時時間
     
-    // 可重試的異常類型
+    // 可重试的異常類型
     std::function<bool(const std::exception&)> shouldRetry = [](const std::exception& e) {
-        // 默認重試所有異常
+        // 默认重试所有異常
         return true;
     };
 };
 
-// 重試結果
+// 重试結果
 template<typename T>
 struct RetryResult {
     bool success;
@@ -43,15 +43,15 @@ struct RetryResult {
         : success(s), value(v), attempts(a), totalDuration(d) {}
 };
 
-// 重試管理器
+// 重试管理器
 class RetryManager {
 public:
     static RetryManager& getInstance();
     
-    // 初始化重試管理器
+    // 初始化重试管理器
     bool initialize();
     
-    // 執行帶重試的函數
+    // 执行帶重试的函数
     template<typename Func>
     auto execute(Func&& func, const RetryConfig& config = RetryConfig{}) 
         -> RetryResult<decltype(func())> {
@@ -63,13 +63,13 @@ public:
         
         for (int attempt = 1; attempt <= config.maxAttempts; ++attempt) {
             try {
-                // 設置超時
+                // 设置超時
                 auto timeoutStart = std::chrono::high_resolution_clock::now();
                 
-                // 執行函數
+                // 执行函数
                 auto funcResult = func();
                 
-                // 檢查是否超時
+                // 检查是否超時
                 auto timeoutEnd = std::chrono::high_resolution_clock::now();
                 auto timeoutDuration = std::chrono::duration_cast<std::chrono::milliseconds>(
                     timeoutEnd - timeoutStart);
@@ -91,9 +91,9 @@ public:
                 result.errorMessage = e.what();
                 result.attempts = attempt;
                 
-                // 檢查是否應該重試
+                // 检查是否應該重试
                 if (attempt >= config.maxAttempts || !config.shouldRetry(e)) {
-                    // 不重試，返回失敗結果
+                    // 不重试，返回失败結果
                     auto endTime = std::chrono::high_resolution_clock::now();
                     result.totalDuration = std::chrono::duration_cast<std::chrono::milliseconds>(
                         endTime - startTime);
@@ -115,7 +115,7 @@ public:
         return result;
     }
     
-    // 執行帶重試的異步函數
+    // 执行帶重试的異步函数
     template<typename Func>
     std::future<RetryResult<decltype(std::declval<Func>()())>> executeAsync(
         Func&& func, const RetryConfig& config = RetryConfig{}) {
@@ -125,12 +125,12 @@ public:
         });
     }
     
-    // 創建默認重試配置
+    // 创建默认重试配置
     static RetryConfig createDefaultConfig() {
         return RetryConfig{};
     }
     
-    // 創建快速重試配置
+    // 创建快速重试配置
     static RetryConfig createFastRetryConfig() {
         RetryConfig config;
         config.maxAttempts = 2;
@@ -140,7 +140,7 @@ public:
         return config;
     }
     
-    // 創建穩健重試配置
+    // 创建穩健重试配置
     static RetryConfig createRobustRetryConfig() {
         RetryConfig config;
         config.maxAttempts = 5;

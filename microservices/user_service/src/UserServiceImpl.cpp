@@ -46,7 +46,7 @@
         resp->set_errmsg("db connect failed");
         return ::grpc::Status::OK;
     }
-    // 簡化：以 name 當作 id 或查詢演示
+    // 簡化：以 name 當作 id 或查询演示
     std::string out;
     std::string sql = "SELECT name FROM users WHERE id=" + std::to_string(req->id());
     if (db.querySingleString(sql, out)) {

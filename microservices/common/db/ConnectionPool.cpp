@@ -19,7 +19,7 @@ bool ConnectionPool::initialize(const DbConfig& config, const ConnectionPoolConf
     waitingRequests_ = 0;
     running_ = true;
     
-    // 創建初始連接
+    // 创建初始连接
     for (int i = 0; i < poolConfig_.initialConnections; ++i) {
         auto connection = createConnection();
         if (connection) {
@@ -35,12 +35,12 @@ bool ConnectionPool::initialize(const DbConfig& config, const ConnectionPoolConf
         return false;
     }
     
-    // 啟動健康檢查線程
+    // 启动健康检查線程
     if (poolConfig_.enableHealthCheck) {
         healthCheckThread_ = std::thread(&ConnectionPool::healthCheckThread, this);
     }
     
-    // 啟動清理線程
+    // 启动清理線程
     cleanupThread_ = std::thread(&ConnectionPool::cleanupThread, this);
     
     std::cout << "ConnectionPool initialized with " << totalConnections_ << " connections\n";
@@ -52,7 +52,7 @@ std::shared_ptr<DbConnection> ConnectionPool::getConnection() {
     waitingRequests_++;
     totalRequests_++;
     
-    // 等待可用連接
+    // 等待可用连接
     poolCondition_.wait(lock, [this] {
         return !availableConnections_.empty() || !running_;
     });
@@ -63,23 +63,23 @@ std::shared_ptr<DbConnection> ConnectionPool::getConnection() {
         return nullptr;
     }
     
-    // 獲取連接
+    // 获取连接
     auto pooledConn = availableConnections_.front();
     availableConnections_.pop();
     
-    // 檢查連接是否健康
+    // 检查连接是否健康
     if (!isConnectionHealthy(pooledConn)) {
-        // 創建新連接替換
+        // 创建新连接替换
         auto newConnection = createConnection();
         if (newConnection) {
             pooledConn = std::make_shared<PooledConnection>(newConnection);
-            // 替換舊連接
+            // 替换舊连接
             auto it = std::find(allConnections_.begin(), allConnections_.end(), pooledConn);
             if (it != allConnections_.end()) {
                 *it = pooledConn;
             }
         } else {
-            // 無法創建新連接，返回 nullptr
+            // 無法创建新连接，返回 nullptr
             return nullptr;
         }
     }
@@ -97,7 +97,7 @@ void ConnectionPool::returnConnection(std::shared_ptr<DbConnection> connection) 
     
     std::lock_guard<std::mutex> lock(poolMutex_);
     
-    // 找到對應的池化連接
+    // 找到對應的池化连接
     auto it = std::find_if(allConnections_.begin(), allConnections_.end(),
         [&connection](const std::shared_ptr<PooledConnection>& pooledConn) {
             return pooledConn->connection == connection;
@@ -154,15 +154,15 @@ void ConnectionPool::cleanupExpiredConnections() {
     for (auto it = allConnections_.begin(); it != allConnections_.end();) {
         auto& pooledConn = *it;
         
-        // 檢查是否過期
+        // 检查是否过期
         bool isExpired = false;
         
-        // 檢查最大生命週期
+        // 检查最大生命週期
         if (now - pooledConn->createdAt > poolConfig_.maxLifetime) {
             isExpired = true;
         }
         
-        // 檢查空閒超時
+        // 检查空閒超時
         if (now - pooledConn->lastUsedAt > poolConfig_.idleTimeout) {
             isExpired = true;
         }
@@ -176,7 +176,7 @@ void ConnectionPool::cleanupExpiredConnections() {
         }
     }
     
-    // 從可用連接隊列中移除過期連接
+    // 從可用连接隊列中移除过期连接
     std::queue<std::shared_ptr<PooledConnection>> newAvailableConnections;
     while (!availableConnections_.empty()) {
         auto pooledConn = availableConnections_.front();
@@ -211,7 +211,7 @@ void ConnectionPool::shutdown() {
         cleanupThread_.join();
     }
     
-    // 清理所有連接
+    // 清理所有连接
     std::lock_guard<std::mutex> lock(poolMutex_);
     allConnections_.clear();
     
@@ -238,7 +238,7 @@ std::shared_ptr<DbConnection> ConnectionPool::createConnection() {
 void ConnectionPool::markConnectionAsBad(std::shared_ptr<DbConnection> connection) {
     std::lock_guard<std::mutex> lock(poolMutex_);
     
-    // 找到並標記為不健康
+    // 找到並标記為不健康
     for (auto& pooledConn : allConnections_) {
         if (pooledConn->connection == connection) {
             pooledConn->isHealthy = false;
@@ -291,7 +291,7 @@ bool ConnectionPool::isConnectionHealthy(std::shared_ptr<PooledConnection> poole
     }
     
     try {
-        // 執行簡單的查詢來檢查連接健康
+        // 执行簡单的查询來检查连接健康
         auto result = pooledConn->connection->querySingleString("SELECT 1");
         return !result.empty() && result == "1";
     } catch (const std::exception& e) {

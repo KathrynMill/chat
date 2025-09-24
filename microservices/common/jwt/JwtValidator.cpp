@@ -29,7 +29,7 @@ bool JwtValidator::validateToken(const std::string& token, JwtPayload& payload) 
     std::string payloadStr = token.substr(firstDot + 1, secondDot - firstDot - 1);
     std::string signature = token.substr(secondDot + 1);
     
-    // 驗證簽名
+    // 验证簽名
     std::string expectedSignature = hmacSha256(header + "." + payloadStr, secretKey_);
     std::string expectedSignatureB64 = base64Encode(expectedSignature);
     
@@ -41,7 +41,7 @@ bool JwtValidator::validateToken(const std::string& token, JwtPayload& payload) 
     std::string decodedPayload = base64Decode(payloadStr);
     auto claims = parseJson(decodedPayload);
     
-    // 提取標準字段
+    // 提取标准字段
     payload.sub = claims["sub"];
     payload.iss = claims["iss"];
     payload.aud = claims["aud"];
@@ -55,7 +55,7 @@ bool JwtValidator::validateToken(const std::string& token, JwtPayload& payload) 
     
     payload.claims = claims;
     
-    // 檢查過期時間
+    // 检查过期時間
     return !isTokenExpired(payload);
 }
 
@@ -201,7 +201,7 @@ std::string JwtValidator::hmacSha256(const std::string& data, const std::string&
     
     return std::string((char*)result, len);
 #else
-    // 簡化版 HMAC-SHA256（僅用於測試）
+    // 簡化版 HMAC-SHA256（僅用於测试）
     std::cerr << "JwtValidator: OpenSSL not available, using fallback\n";
     return "fallback_signature_" + data + "_" + key;
 #endif
@@ -213,7 +213,7 @@ std::map<std::string, std::string> JwtValidator::parseJson(const std::string& js
     // 簡化版 JSON 解析
     size_t pos = 0;
     while (pos < json.length()) {
-        // 跳過空白字符
+        // 跳过空白字符
         while (pos < json.length() && (json[pos] == ' ' || json[pos] == '\t' || json[pos] == '\n' || json[pos] == '\r')) {
             pos++;
         }
@@ -228,7 +228,7 @@ std::map<std::string, std::string> JwtValidator::parseJson(const std::string& js
         std::string key = json.substr(keyStart, keyEnd - keyStart);
         pos = keyEnd + 1;
         
-        // 跳過冒號
+        // 跳过冒號
         while (pos < json.length() && (json[pos] == ' ' || json[pos] == ':')) {
             pos++;
         }
@@ -245,7 +245,7 @@ std::map<std::string, std::string> JwtValidator::parseJson(const std::string& js
             value = json.substr(valueStart, valueEnd - valueStart);
             pos = valueEnd + 1;
         } else {
-            // 數字值
+            // 数字值
             size_t valueStart = pos;
             while (pos < json.length() && json[pos] != ',' && json[pos] != '}') {
                 pos++;
@@ -255,7 +255,7 @@ std::map<std::string, std::string> JwtValidator::parseJson(const std::string& js
         
         result[key] = value;
         
-        // 跳過逗號
+        // 跳过逗號
         while (pos < json.length() && (json[pos] == ',' || json[pos] == ' ')) {
             pos++;
         }

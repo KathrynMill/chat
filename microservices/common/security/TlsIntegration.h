@@ -52,19 +52,19 @@ public:
     // 為 gRPC Client 配置 TLS
     std::shared_ptr<grpc::ChannelCredentials> createGrpcClientCredentials(const TlsIntegrationConfig& config);
     
-    // 檢查 TLS 是否啟用
+    // 检查 TLS 是否启用
     bool isTlsEnabled() const;
     
-    // 獲取 TLS 配置
+    // 获取 TLS 配置
     const TlsIntegrationConfig& getConfig() const;
     
     // 更新 TLS 配置
     void updateConfig(const TlsIntegrationConfig& config);
     
-    // 重新加載證書
+    // 重新加载证書
     bool reloadCertificates();
     
-    // 獲取 TLS 統計
+    // 获取 TLS 统計
     struct TlsIntegrationStats {
         int muduoConnections;
         int grpcConnections;
@@ -85,22 +85,22 @@ private:
     // 初始化 OpenSSL
     bool initializeOpenSSL();
     
-    // 創建 SSL 上下文
+    // 创建 SSL 上下文
     bool createSslContext(const TlsIntegrationConfig& config);
     
-    // 配置 SSL 選項
+    // 配置 SSL 選项
     void configureSslOptions(const TlsIntegrationConfig& config);
     
-    // 加載證書
+    // 加载证書
     bool loadCertificates(const TlsIntegrationConfig& config);
     
-    // 驗證證書
+    // 验证证書
     bool validateCertificates(const TlsIntegrationConfig& config);
     
-    // 創建 gRPC SSL 憑證
+    // 创建 gRPC SSL 憑证
     std::shared_ptr<grpc::SslCredentialsOptions> createSslCredentialsOptions(const TlsIntegrationConfig& config);
     
-    // 統計信息
+    // 统計信息
     std::atomic<int> muduoConnections_;
     std::atomic<int> grpcConnections_;
     std::atomic<int> handshakeFailures_;

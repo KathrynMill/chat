@@ -7,14 +7,14 @@ int main(int argc, char** argv) {
 
     crow::SimpleApp app;
 
-    // 健康檢查
+    // 健康检查
     CROW_ROUTE(app, "/healthz").methods(crow::HTTPMethod::GET)([] {
         return crow::response(200, "ok");
     });
 
-    // 最小消息API：一對一/群發占位
+    // 最小消息API：一對一/群发占位
     CROW_ROUTE(app, "/api/v1/message/one").methods(crow::HTTPMethod::POST)([](const crow::request& req){
-        // TODO: 解析 body，校驗，轉發到 Redis 或內部邏輯
+        // TODO: 解析 body，校验，转发到 Redis 或内部邏輯
         return crow::response(202, "accepted");
     });
 

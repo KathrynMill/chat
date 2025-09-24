@@ -4,7 +4,7 @@ metadata:
   name: chat-config
   namespace: chat-system
 data:
-  # 資料庫配置
+  # 资料庫配置
   DB_HOST: "mariadb-service"
   DB_PORT: "3306"
   DB_USER: "root"
@@ -22,7 +22,7 @@ data:
   # Jaeger 配置
   JAEGER_ENDPOINT: "http://jaeger-service:14268/api/traces"
   
-  # 服務配置
+  # 服务配置
   SERVICE_USER: "user-service:60051"
   SERVICE_SOCIAL: "social-service:60052"
   SERVICE_MESSAGE: "message-service:60053"

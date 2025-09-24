@@ -16,18 +16,18 @@ class JwtValidator {
 public:
     JwtValidator(const std::string& secretKey);
     
-    // 驗證 JWT token
+    // 验证 JWT token
     bool validateToken(const std::string& token, JwtPayload& payload);
     
-    // 生成 JWT token（用於測試）
+    // 生成 JWT token（用於测试）
     std::string generateToken(const std::string& userId, 
                              const std::string& issuer = "chat-service",
                              int expirationSeconds = 3600);
     
-    // 檢查 token 是否過期
+    // 检查 token 是否过期
     bool isTokenExpired(const JwtPayload& payload);
     
-    // 從 token 中提取用戶 ID
+    // 從 token 中提取用户 ID
     std::string extractUserId(const std::string& token);
 
 private:
@@ -44,7 +44,7 @@ private:
     std::map<std::string, std::string> parseJson(const std::string& json);
     std::string toJson(const std::map<std::string, std::string>& data);
     
-    // 時間戳轉換
+    // 時間戳转换
     std::chrono::system_clock::time_point timestampToTimePoint(int64_t timestamp);
     int64_t timePointToTimestamp(const std::chrono::system_clock::time_point& tp);
 };

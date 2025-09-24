@@ -2,17 +2,17 @@
 
 echo "📦 安裝 Node.js 和 npm..."
 
-# 檢查是否已經安裝
+# 检查是否已經安裝
 if command -v node &> /dev/null; then
     echo "✅ Node.js 已安裝，版本: $(node --version)"
     echo "✅ npm 已安裝，版本: $(npm --version)"
     exit 0
 fi
 
-# 檢測系統類型
+# 检测系统類型
 if [ -f /etc/redhat-release ]; then
-    # CentOS/RHEL 系統
-    echo "🐧 檢測到 CentOS/RHEL 系統"
+    # CentOS/RHEL 系统
+    echo "🐧 检测到 CentOS/RHEL 系统"
     
     # 安裝 NodeSource 倉庫
     echo "📥 添加 NodeSource 倉庫..."
@@ -23,8 +23,8 @@ if [ -f /etc/redhat-release ]; then
     sudo yum install -y nodejs
     
 elif [ -f /etc/debian_version ]; then
-    # Debian/Ubuntu 系統
-    echo "🐧 檢測到 Debian/Ubuntu 系統"
+    # Debian/Ubuntu 系统
+    echo "🐧 检测到 Debian/Ubuntu 系统"
     
     # 安裝 NodeSource 倉庫
     echo "📥 添加 NodeSource 倉庫..."
@@ -35,12 +35,12 @@ elif [ -f /etc/debian_version ]; then
     sudo apt-get install -y nodejs
     
 else
-    echo "❌ 不支援的系統，請手動安裝 Node.js"
-    echo "請訪問 https://nodejs.org/ 下載並安裝"
+    echo "❌ 不支援的系统，請手动安裝 Node.js"
+    echo "請訪問 https://nodejs.org/ 下载並安裝"
     exit 1
 fi
 
-# 驗證安裝
+# 验证安裝
 if command -v node &> /dev/null; then
     echo "✅ Node.js 安裝成功！"
     echo "📊 Node.js 版本: $(node --version)"
@@ -48,14 +48,14 @@ if command -v node &> /dev/null; then
     
     # 安裝完成後提示
     echo ""
-    echo "🎉 安裝完成！現在可以運行網頁版聊天應用程式："
+    echo "🎉 安裝完成！现在可以运行网頁版聊天應用程式："
     echo "   cd web"
     echo "   ./start.sh"
     echo ""
-    echo "或者使用整合啟動器："
+    echo "或者使用整合启动器："
     echo "   ./start_web_chat.sh"
     
 else
-    echo "❌ Node.js 安裝失敗"
+    echo "❌ Node.js 安裝失败"
     exit 1
 fi 

@@ -41,7 +41,7 @@ bool ConsulClient::registerService(const std::string& serviceName,
         service["Tags"].push_back(tag);
     }
     
-    // 健康檢查
+    // 健康检查
     json check;
     check["HTTP"] = "http://" + address + ":" + std::to_string(port) + "/health";
     check["Interval"] = "10s";

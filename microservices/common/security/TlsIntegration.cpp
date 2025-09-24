@@ -40,19 +40,19 @@ bool TlsIntegration::initialize(const TlsIntegrationConfig& config) {
         return false;
     }
     
-    // 創建 SSL 上下文
+    // 创建 SSL 上下文
     if (!createSslContext(config_)) {
         std::cerr << "Failed to create SSL context\n";
         return false;
     }
     
-    // 加載證書
+    // 加载证書
     if (!loadCertificates(config_)) {
         std::cerr << "Failed to load certificates\n";
         return false;
     }
     
-    // 驗證證書
+    // 验证证書
     if (!validateCertificates(config_)) {
         std::cerr << "Failed to validate certificates\n";
         return false;
@@ -68,7 +68,7 @@ bool TlsIntegration::configureMuduoServer(TcpServer& server, const TlsIntegratio
         return true;
     }
     
-    // 設置連接回調以處理 TLS 握手
+    // 设置连接回调以处理 TLS 握手
     server.setConnectionCallback([this](const TcpConnectionPtr& conn) {
         if (conn->connected()) {
             configureMuduoConnection(conn, config_);
@@ -85,10 +85,10 @@ bool TlsIntegration::configureMuduoConnection(const TcpConnectionPtr& conn, cons
     }
     
     try {
-        // 獲取 socket 文件描述符
+        // 获取 socket 文件描述符
         int sockfd = conn->socket()->fd();
         
-        // 創建 SSL 連接
+        // 创建 SSL 连接
         auto ssl = tlsManager_->createSslConnection(sockfd, true);
         if (!ssl) {
             std::cerr << "Failed to create SSL connection for muduo\n";
@@ -96,7 +96,7 @@ bool TlsIntegration::configureMuduoConnection(const TcpConnectionPtr& conn, cons
             return false;
         }
         
-        // 執行 SSL 握手
+        // 执行 SSL 握手
         if (!tlsManager_->performHandshake(ssl)) {
             std::cerr << "SSL handshake failed for muduo connection\n";
             handshakeFailures_++;
@@ -120,14 +120,14 @@ std::shared_ptr<grpc::ServerCredentials> TlsIntegration::createGrpcServerCredent
     }
     
     try {
-        // 創建 SSL 憑證選項
+        // 创建 SSL 憑证選项
         auto sslOptions = createSslCredentialsOptions(config);
         if (!sslOptions) {
             std::cerr << "Failed to create SSL credentials options\n";
             return grpc::InsecureServerCredentials();
         }
         
-        // 創建 gRPC SSL 服務器憑證
+        // 创建 gRPC SSL 服务器憑证
         auto credentials = grpc::SslServerCredentials(*sslOptions);
         grpcConnections_++;
         
@@ -146,14 +146,14 @@ std::shared_ptr<grpc::ChannelCredentials> TlsIntegration::createGrpcClientCreden
     }
     
     try {
-        // 創建 SSL 憑證選項
+        // 创建 SSL 憑证選项
         auto sslOptions = createSslCredentialsOptions(config);
         if (!sslOptions) {
             std::cerr << "Failed to create SSL credentials options\n";
             return grpc::InsecureChannelCredentials();
         }
         
-        // 創建 gRPC SSL 客戶端憑證
+        // 创建 gRPC SSL 客户端憑证
         auto credentials = grpc::SslCredentials(*sslOptions);
         grpcConnections_++;
         
@@ -187,7 +187,7 @@ bool TlsIntegration::reloadCertificates() {
         return false;
     }
     
-    // 重新加載證書
+    // 重新加载证書
     if (!loadCertificates(config_)) {
         std::cerr << "Failed to reload certificates\n";
         return false;
@@ -216,7 +216,7 @@ bool TlsIntegration::initializeOpenSSL() {
     SSL_load_error_strings();
     OpenSSL_add_all_algorithms();
     
-    // 初始化隨機數生成器
+    // 初始化隨機数生成器
     if (RAND_status() != 1) {
         std::cerr << "OpenSSL random number generator not seeded\n";
         return false;
@@ -231,14 +231,14 @@ bool TlsIntegration::initializeOpenSSL() {
 
 bool TlsIntegration::createSslContext(const TlsIntegrationConfig& config) {
 #ifdef HAVE_OPENSSL
-    // 創建 SSL 上下文
+    // 创建 SSL 上下文
     sslCtx_ = SSL_CTX_new(TLS_server_method());
     if (!sslCtx_) {
         std::cerr << "Failed to create SSL context: " << tlsManager_->getSslError() << "\n";
         return false;
     }
     
-    // 配置 SSL 選項
+    // 配置 SSL 選项
     configureSslOptions(config);
     
     return true;
@@ -253,25 +253,25 @@ void TlsIntegration::configureSslOptions(const TlsIntegrationConfig& config) {
         return;
     }
     
-    // 設置最小和最大 TLS 版本
+    // 设置最小和最大 TLS 版本
     SSL_CTX_set_min_proto_version(sslCtx_, config.minVersion);
     SSL_CTX_set_max_proto_version(sslCtx_, config.maxVersion);
     
-    // 設置加密套件
+    // 设置加密套件
     if (!config.cipherSuites.empty()) {
         if (!SSL_CTX_set_cipher_list(sslCtx_, config.cipherSuites.c_str())) {
             std::cerr << "Failed to set cipher suites\n";
         }
     }
     
-    // 設置驗證選項
+    // 设置验证選项
     if (config.verifyPeer) {
         SSL_CTX_set_verify(sslCtx_, SSL_VERIFY_PEER | SSL_VERIFY_FAIL_IF_NO_PEER_CERT, nullptr);
     } else {
         SSL_CTX_set_verify(sslCtx_, SSL_VERIFY_NONE, nullptr);
     }
     
-    // 設置會話緩存
+    // 设置會话緩存
     SSL_CTX_set_session_cache_mode(sslCtx_, SSL_SESS_CACHE_SERVER);
     SSL_CTX_set_timeout(sslCtx_, 300); // 5 分鐘
 #endif
@@ -282,7 +282,7 @@ bool TlsIntegration::loadCertificates(const TlsIntegrationConfig& config) {
         return true;
     }
     
-    // 使用 TlsManager 加載證書
+    // 使用 TlsManager 加载证書
     if (!config.certFile.empty() && !config.keyFile.empty()) {
         if (!tlsManager_->loadCertificate(config.certFile, config.keyFile)) {
             std::cerr << "Failed to load certificate files\n";
@@ -305,7 +305,7 @@ bool TlsIntegration::validateCertificates(const TlsIntegrationConfig& config) {
         return true;
     }
     
-    // 驗證證書文件是否存在
+    // 验证证書文件是否存在
     if (!config.certFile.empty()) {
         std::ifstream certFile(config.certFile);
         if (!certFile.good()) {
@@ -328,7 +328,7 @@ bool TlsIntegration::validateCertificates(const TlsIntegrationConfig& config) {
 std::shared_ptr<grpc::SslCredentialsOptions> TlsIntegration::createSslCredentialsOptions(const TlsIntegrationConfig& config) {
     auto options = std::make_shared<grpc::SslCredentialsOptions>();
     
-    // 設置根證書
+    // 设置根证書
     if (!config.caFile.empty()) {
         std::ifstream caFile(config.caFile);
         if (caFile.good()) {
@@ -338,7 +338,7 @@ std::shared_ptr<grpc::SslCredentialsOptions> TlsIntegration::createSslCredential
         }
     }
     
-    // 設置客戶端證書和私鑰
+    // 设置客户端证書和私鑰
     if (!config.certFile.empty() && !config.keyFile.empty()) {
         std::ifstream certFile(config.certFile);
         std::ifstream keyFile(config.keyFile);

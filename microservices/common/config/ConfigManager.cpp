@@ -38,14 +38,14 @@ bool ConfigManager::initialize(const std::string& consulUrl,
     std::cout << "ConfigManager initialized without Consul (CURL not available)\n";
 #endif
     
-    // 加載配置
+    // 加载配置
     loadFromEnvironment();
     
     if (consulClient_) {
         loadFromConsul();
     }
     
-    // 啟動監聽
+    // 启动监聽
     if (enableHotReload_) {
         startWatching();
     }
@@ -54,7 +54,7 @@ bool ConfigManager::initialize(const std::string& consulUrl,
 }
 
 void ConfigManager::loadFromEnvironment() {
-    // 預定義的環境變數配置
+    // 預定義的环境变数配置
     std::vector<std::pair<std::string, std::string>> envConfigs = {
         {"DB_HOST", "127.0.0.1"},
         {"DB_PORT", "3306"},
@@ -93,7 +93,7 @@ bool ConfigManager::loadFromConsul() {
     }
     
     try {
-        // 獲取所有配置鍵
+        // 获取所有配置键
         std::vector<std::string> configKeys = {
             "service/name", "service/port", "service/enable_tls",
             "database/host", "database/port", "database/user", "database/password", "database/name",
@@ -129,10 +129,10 @@ bool ConfigManager::loadFromConsul(const std::string& key) {
     try {
         std::string fullKey = configPrefix_ + key;
         
-        // 這裡應該調用 ConsulClient 的方法來獲取 KV 值
-        // 由於 ConsulClient 的實現可能不同，這裡提供一個框架
+        // 這裡應該调用 ConsulClient 的方法來获取 KV 值
+        // 由於 ConsulClient 的实现可能不同，這裡提供一個框架
         
-        // 示例：假設 ConsulClient 有 getKV 方法
+        // 示例：假设 ConsulClient 有 getKV 方法
         // std::string value = consulClient_->getKV(fullKey);
         // if (!value.empty()) {
         //     consulConfigs_[key] = value;
@@ -163,16 +163,16 @@ void ConfigManager::watchConsulChanges() {
     std::thread([this]() {
         while (watching_) {
             try {
-                // 這裡應該實現 Consul KV 變更監聽
+                // 這裡應該实现 Consul KV 变更监聽
                 // 可以使用 Consul 的 blocking query 或 watch API
                 
-                // 示例實現：
+                // 示例实现：
                 // auto changes = consulClient_->watchKV(configPrefix_);
                 // for (const auto& change : changes) {
                 //     std::string key = change.first.substr(configPrefix_.length());
                 //     std::string newValue = change.second;
                 //     
-                //     // 檢查配置是否真的變更了
+                //     // 检查配置是否真的变更了
                 //     std::string oldValue;
                 //     {
                 //         std::lock_guard<std::mutex> lock(configsMutex_);
@@ -214,7 +214,7 @@ bool ConfigManager::loadFromFile(const std::string& configFile) {
     int loadedCount = 0;
     
     while (std::getline(file, line)) {
-        // 跳過空行和註釋
+        // 跳过空行和註釋
         if (line.empty() || line[0] == '#') {
             continue;
         }
@@ -299,7 +299,7 @@ void ConfigManager::setString(const std::string& key, const std::string& value) 
         }
     }
     
-    // 觸發回調
+    // 觸发回调
     handleConfigChange(key, value);
 }
 
@@ -352,7 +352,7 @@ bool ConfigManager::saveToConsul() {
         
         for (const auto& pair : configs_) {
             std::string fullKey = configPrefix_ + pair.first;
-            // 這裡應該調用 ConsulClient 的方法來保存 KV
+            // 這裡應該调用 ConsulClient 的方法來保存 KV
             // consulClient_->setKV(fullKey, pair.second.value);
         }
         
@@ -458,10 +458,10 @@ void ConfigManager::watchThread() {
             
             if (!watching_) break;
             
-            // 檢查 Consul 配置變更
+            // 检查 Consul 配置变更
             if (consulClient_) {
-                // 這裡應該檢查 Consul KV 的變更
-                // 簡化實現：重新加載所有配置
+                // 這裡應該检查 Consul KV 的变更
+                // 簡化实现：重新加载所有配置
                 reloadConfig();
             }
             
@@ -482,7 +482,7 @@ void ConfigManager::handleConfigChange(const std::string& key, const std::string
         }
     }
     
-    // 觸發特定 key 的回調
+    // 觸发特定 key 的回调
     {
         std::lock_guard<std::mutex> lock(callbacksMutex_);
         auto it = keyCallbacks_.find(key);
@@ -496,7 +496,7 @@ void ConfigManager::handleConfigChange(const std::string& key, const std::string
             }
         }
         
-        // 觸發全局回調
+        // 觸发全局回调
         for (const auto& callback : globalCallbacks_) {
             try {
                 callback(key, oldValue, newValue);
@@ -508,7 +508,7 @@ void ConfigManager::handleConfigChange(const std::string& key, const std::string
 }
 
 std::string ConfigManager::parseConfigValue(const std::string& value) {
-    // 處理環境變數引用 ${VAR_NAME}
+    // 处理环境变数引用 ${VAR_NAME}
     std::string result = value;
     size_t start = 0;
     
@@ -532,17 +532,17 @@ std::string ConfigManager::parseConfigValue(const std::string& value) {
 }
 
 bool ConfigManager::validateConfigItem(const ConfigItem& item) {
-    // 基本驗證
+    // 基本验证
     if (item.key.empty()) {
         return false;
     }
     
-    // 必填項驗證
+    // 必填项验证
     if (item.isRequired && item.value.empty()) {
         return false;
     }
     
-    // 類型驗證（可以根據需要擴展）
+    // 類型验证（可以根据需要扩展）
     return true;
 }
 

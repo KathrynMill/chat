@@ -92,7 +92,7 @@ public:
                     int msgid = js.value("msgid", 0);
                     if (msgid == 1) { // LOGIN_MSG
 #ifdef HAVE_GRPC
-                        // 構造 gRPC 請求
+                        // 构造 gRPC 請求
                         chat::user::LoginRequest req;
                         req.set_id(js.value("id", 0));
                         req.set_password(js.value("password", std::string("")));
@@ -218,7 +218,7 @@ private:
 
     std::unique_ptr<chat::user::UserService::Stub> getUserStub() {
 #ifdef HAVE_CURL
-        // 從 Consul 獲取服務實例
+        // 從 Consul 获取服务实例
         if (g_consul) {
             auto instances = g_consul->getHealthyServiceInstances("chat-user-service");
             if (!instances.empty()) {
@@ -230,7 +230,7 @@ private:
             }
         }
 #endif
-        // 回退到環境變數或預設值
+        // 回退到环境变数或預设值
         std::string ep = user_eps_.empty() ? std::string("127.0.0.1:60051") : user_eps_[(user_rr_++) % user_eps_.size()];
         auto ch = grpc::CreateChannel(ep, grpc::InsecureChannelCredentials());
         return chat::user::UserService::NewStub(ch);
@@ -296,14 +296,14 @@ public:
 
 
 int main(int argc, char** argv) {
-    // 初始化 Consul 客戶端
+    // 初始化 Consul 客户端
 #ifdef HAVE_CURL
     std::string consulUrl = std::getenv("CONSUL_URL") ? std::getenv("CONSUL_URL") : std::string("http://127.0.0.1:8500");
     g_consul = new ConsulClient(consulUrl);
     std::cout << "Gateway: Consul client initialized: " << consulUrl << "\n";
 #endif
 
-    // 初始化 JWT 驗證器
+    // 初始化 JWT 验证器
 #ifdef HAVE_OPENSSL
     std::string jwtSecret = std::getenv("JWT_SECRET") ? std::getenv("JWT_SECRET") : std::string("your-secret-key");
     g_jwt = new JwtValidator(jwtSecret);
@@ -355,14 +355,14 @@ int main(int argc, char** argv) {
     loop.loop();
 #else
     std::cout << "Chat Gateway built without muduo.\n";
-    std::cout << "請安裝 muduo 後重建，或執行 install_micro_deps.sh。\n";
+    std::cout << "請安裝 muduo 後重建，或执行 install_micro_deps.sh。\n";
 #endif
 #ifdef HAVE_CPPKAFKA
     running.store(false);
     if (kafkaThread.joinable()) kafkaThread.join();
 #endif
 
-    // 清理資源
+    // 清理资源
 #ifdef HAVE_CURL
     delete g_consul;
 #endif

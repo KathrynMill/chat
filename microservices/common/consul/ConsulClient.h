@@ -17,20 +17,20 @@ public:
     ConsulClient(const std::string& consulUrl = "http://127.0.0.1:8500");
     ~ConsulClient();
 
-    // 服務註冊
+    // 服务註冊
     bool registerService(const std::string& serviceName, 
                         const std::string& serviceId,
                         const std::string& address, 
                         int port,
                         const std::vector<std::string>& tags = {});
 
-    // 服務註銷
+    // 服务註销
     bool deregisterService(const std::string& serviceId);
 
-    // 服務發現
+    // 服务发现
     std::vector<ServiceInstance> getHealthyServiceInstances(const std::string& serviceName);
 
-    // 健康檢查
+    // 健康检查
     bool checkServiceHealth(const std::string& serviceId);
 
 private:

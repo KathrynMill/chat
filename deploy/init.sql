@@ -1,8 +1,8 @@
--- 創建資料庫（如果不存在）
+-- 创建资料庫（如果不存在）
 CREATE DATABASE IF NOT EXISTS chatdb CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 USE chatdb;
 
--- 用戶表
+-- 用户表
 CREATE TABLE IF NOT EXISTS users (
     id INT PRIMARY KEY AUTO_INCREMENT,
     username VARCHAR(50) UNIQUE NOT NULL,
@@ -13,7 +13,7 @@ CREATE TABLE IF NOT EXISTS users (
     INDEX idx_username (username)
 ) ENGINE=InnoDB;
 
--- 好友關係表
+-- 好友关系表
 CREATE TABLE IF NOT EXISTS friends (
     id INT PRIMARY KEY AUTO_INCREMENT,
     user_id INT NOT NULL,
@@ -28,7 +28,7 @@ CREATE TABLE IF NOT EXISTS friends (
     FOREIGN KEY (friend_id) REFERENCES users(id) ON DELETE CASCADE
 ) ENGINE=InnoDB;
 
--- 群組表
+-- 群组表
 CREATE TABLE IF NOT EXISTS groups (
     id INT PRIMARY KEY AUTO_INCREMENT,
     name VARCHAR(100) NOT NULL,
@@ -40,7 +40,7 @@ CREATE TABLE IF NOT EXISTS groups (
     FOREIGN KEY (owner_id) REFERENCES users(id) ON DELETE CASCADE
 ) ENGINE=InnoDB;
 
--- 群組成員表
+-- 群组成員表
 CREATE TABLE IF NOT EXISTS group_members (
     id INT PRIMARY KEY AUTO_INCREMENT,
     group_id INT NOT NULL,
@@ -54,7 +54,7 @@ CREATE TABLE IF NOT EXISTS group_members (
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 ) ENGINE=InnoDB;
 
--- 訊息表
+-- 讯息表
 CREATE TABLE IF NOT EXISTS messages (
     id BIGINT PRIMARY KEY AUTO_INCREMENT,
     from_id INT NOT NULL,
@@ -73,7 +73,7 @@ CREATE TABLE IF NOT EXISTS messages (
     CHECK ((to_id IS NOT NULL AND group_id IS NULL) OR (to_id IS NULL AND group_id IS NOT NULL))
 ) ENGINE=InnoDB;
 
--- 離線訊息表
+-- 離線讯息表
 CREATE TABLE IF NOT EXISTS offline_msgs (
     id BIGINT PRIMARY KEY AUTO_INCREMENT,
     user_id INT NOT NULL,
@@ -88,24 +88,24 @@ CREATE TABLE IF NOT EXISTS offline_msgs (
     FOREIGN KEY (from_id) REFERENCES users(id) ON DELETE CASCADE
 ) ENGINE=InnoDB;
 
--- 插入測試數據
+-- 插入测试数据
 INSERT INTO users (username, password_hash, email) VALUES
 ('alice', '$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewdBPj4J/8Kz8Kz2', 'alice@example.com'),
 ('bob', '$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewdBPj4J/8Kz8Kz2', 'bob@example.com'),
 ('charlie', '$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewdBPj4J/8Kz8Kz2', 'charlie@example.com');
 
--- 插入測試好友關係
+-- 插入测试好友关系
 INSERT INTO friends (user_id, friend_id, status) VALUES
 (1, 2, 'accepted'),
 (2, 1, 'accepted'),
 (1, 3, 'accepted'),
 (3, 1, 'accepted');
 
--- 插入測試群組
+-- 插入测试群组
 INSERT INTO groups (name, description, owner_id) VALUES
 ('Test Group', 'A test group for development', 1);
 
--- 插入測試群組成員
+-- 插入测试群组成員
 INSERT INTO group_members (group_id, user_id, role) VALUES
 (1, 1, 'owner'),
 (1, 2, 'member'),

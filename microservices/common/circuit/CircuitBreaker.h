@@ -7,7 +7,7 @@
 enum class CircuitState {
     CLOSED,    // 正常狀態
     OPEN,      // 熔斷狀態
-    HALF_OPEN  // 半開狀態
+    HALF_OPEN  // 半开狀態
 };
 
 class CircuitBreaker {
@@ -16,19 +16,19 @@ public:
                    std::chrono::milliseconds timeout = std::chrono::milliseconds(60000),
                    std::chrono::milliseconds retryTimeout = std::chrono::milliseconds(30000));
     
-    // 執行操作，返回是否允許執行
+    // 执行操作，返回是否允許执行
     bool canExecute();
     
-    // 記錄成功
+    // 記录成功
     void recordSuccess();
     
-    // 記錄失敗
+    // 記录失败
     void recordFailure();
     
-    // 獲取當前狀態
+    // 获取當前狀態
     CircuitState getState() const;
     
-    // 獲取統計信息
+    // 获取统計信息
     int getFailureCount() const;
     int getSuccessCount() const;
     

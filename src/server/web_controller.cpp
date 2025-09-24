@@ -8,7 +8,7 @@
 #include <openssl/buffer.h>
 #include <openssl/evp.h>
 
-// 單例實例
+// 单例实例
 static WebController* g_webController = nullptr;
 
 WebController* WebController::instance()
@@ -93,7 +93,7 @@ void WebController::handleLogin(const crow::request& req, crow::response& res)
         
         std::cout << "登入請求: id=" << id << ", pwd=" << (pwd.empty() ? "空" : "***") << std::endl;
         
-        // 使用現有的ChatService進行登入驗證
+        // 使用现有的ChatService进行登入验证
         User user = ChatService::instance()->getUserModel().query(id);
         
         if (user.getId() != -1 && user.getPwd() == pwd) {
@@ -108,20 +108,20 @@ void WebController::handleLogin(const crow::request& req, crow::response& res)
             response_json["user"]["name"] = user.getName();
             
             res = crow::response(200, "application/json", response_json.dump());
-            std::cout << "用戶登入成功: id=" << user.getId() << ", name=" << user.getName() << std::endl;
+            std::cout << "用户登入成功: id=" << user.getId() << ", name=" << user.getName() << std::endl;
         } else {
-            // 登入失敗
+            // 登入失败
             json response_json;
             response_json["success"] = false;
-            response_json["message"] = "用戶ID或密碼錯誤";
+            response_json["message"] = "用户ID或密碼错误";
             
             res = crow::response(401, "application/json", response_json.dump());
-            std::cout << "登入失敗: id=" << id << std::endl;
+            std::cout << "登入失败: id=" << id << std::endl;
         }
     } catch (const std::exception& e) {
         json response_json;
         response_json["success"] = false;
-        response_json["message"] = "服務器錯誤: " + std::string(e.what());
+        response_json["message"] = "服务器错误: " + std::string(e.what());
         res = crow::response(500, "application/json", response_json.dump());
     }
 }
@@ -141,20 +141,20 @@ void WebController::handleRegister(const crow::request& req, crow::response& res
         if (name.empty() || pwd.empty()) {
             json response_json;
             response_json["success"] = false;
-            response_json["message"] = "請填寫完整資訊";
+            response_json["message"] = "請填写完整资讯";
             res = crow::response(400, "application/json", response_json.dump());
             return;
         }
-        // 檢查用戶是否已存在
+        // 检查用户是否已存在
         User existingUser = ChatService::instance()->getUserModel().queryByName(name);
         if (existingUser.getId() != -1) {
             json response_json;
             response_json["success"] = false;
-            response_json["message"] = "用戶名已存在";
+            response_json["message"] = "用户名已存在";
             res = crow::response(409, "application/json", response_json.dump());
             return;
         }
-        // 創建新用戶
+        // 创建新用户
         User newUser;
         newUser.setName(name);
         newUser.setPwd(pwd);
@@ -166,17 +166,17 @@ void WebController::handleRegister(const crow::request& req, crow::response& res
             response_json["userId"] = newUser.getId();
             response_json["userName"] = newUser.getName();
             res = crow::response(200, "application/json", response_json.dump());
-            std::cout << "用戶註冊成功: id=" << newUser.getId() << ", name=" << newUser.getName() << std::endl;
+            std::cout << "用户註冊成功: id=" << newUser.getId() << ", name=" << newUser.getName() << std::endl;
         } else {
             json response_json;
             response_json["success"] = false;
-            response_json["message"] = "註冊失敗";
+            response_json["message"] = "註冊失败";
             res = crow::response(500, "application/json", response_json.dump());
         }
     } catch (const std::exception& e) {
         json response_json;
         response_json["success"] = false;
-        response_json["message"] = "服務器錯誤: " + std::string(e.what());
+        response_json["message"] = "服务器错误: " + std::string(e.what());
         res = crow::response(500, "application/json", response_json.dump());
     }
 }
@@ -192,35 +192,35 @@ void WebController::handleFindUserId(const crow::request& req, crow::response& r
         }
         std::string name = body["name"].s();
         std::string pwd = body["pwd"].s();
-        std::cout << "找回用戶ID請求: name=" << name << ", pwd=" << (pwd.empty() ? "空" : "***") << std::endl;
+        std::cout << "找回用户ID請求: name=" << name << ", pwd=" << (pwd.empty() ? "空" : "***") << std::endl;
         if (name.empty() || pwd.empty()) {
             json response_json;
             response_json["success"] = false;
-            response_json["message"] = "請填寫用戶名和密碼";
+            response_json["message"] = "請填写用户名和密碼";
             res = crow::response(400, "application/json", response_json.dump());
             return;
         }
-        // 查找用戶
+        // 查找用户
         User user = ChatService::instance()->getUserModel().queryByName(name);
         if (user.getId() != -1 && user.getPwd() == pwd) {
             json response_json;
             response_json["success"] = true;
-            response_json["message"] = "找到用戶";
+            response_json["message"] = "找到用户";
             response_json["userId"] = user.getId();
             response_json["userName"] = user.getName();
             res = crow::response(200, "application/json", response_json.dump());
-            std::cout << "找到用戶: id=" << user.getId() << ", name=" << user.getName() << std::endl;
+            std::cout << "找到用户: id=" << user.getId() << ", name=" << user.getName() << std::endl;
         } else {
             json response_json;
             response_json["success"] = false;
-            response_json["message"] = "用戶名或密碼錯誤，或用戶不存在";
+            response_json["message"] = "用户名或密碼错误，或用户不存在";
             res = crow::response(404, "application/json", response_json.dump());
-            std::cout << "未找到用戶: name=" << name << std::endl;
+            std::cout << "未找到用户: name=" << name << std::endl;
         }
     } catch (const std::exception& e) {
         json response_json;
         response_json["success"] = false;
-        response_json["message"] = "服務器錯誤: " + std::string(e.what());
+        response_json["message"] = "服务器错误: " + std::string(e.what());
         res = crow::response(500, "application/json", response_json.dump());
     }
 }
@@ -228,12 +228,12 @@ void WebController::handleFindUserId(const crow::request& req, crow::response& r
 void WebController::handleGetFriends(const crow::request& req, crow::response& res)
 {
     try {
-        // 從Authorization header獲取token
+        // 從Authorization header获取token
         std::string authHeader = req.get_header_value("Authorization");
         if (authHeader.empty() || authHeader.substr(0, 7) != "Bearer ") {
             json response_json;
             response_json["success"] = false;
-            response_json["message"] = "未提供認證令牌";
+            response_json["message"] = "未提供认证令牌";
             res = crow::response(401, "application/json", response_json.dump());
             return;
         }
@@ -248,7 +248,7 @@ void WebController::handleGetFriends(const crow::request& req, crow::response& r
             return;
         }
         
-        // 獲取好友列表
+        // 获取好友列表
         std::vector<User> friends = ChatService::instance()->getFriendModel().query(userId);
         
         json response_json;
@@ -267,7 +267,7 @@ void WebController::handleGetFriends(const crow::request& req, crow::response& r
     } catch (const std::exception& e) {
         json response_json;
         response_json["success"] = false;
-        response_json["message"] = "服務器錯誤: " + std::string(e.what());
+        response_json["message"] = "服务器错误: " + std::string(e.what());
         res = crow::response(500, "application/json", response_json.dump());
     }
 }
@@ -282,12 +282,12 @@ void WebController::handleAddFriend(const crow::request& req, crow::response& re
             return;
         }
         int friendId = body["friendId"].i();
-        // 驗證token
+        // 验证token
         std::string authHeader = req.get_header_value("Authorization");
         if (authHeader.empty() || authHeader.substr(0, 7) != "Bearer ") {
             json response_json;
             response_json["success"] = false;
-            response_json["message"] = "未提供認證令牌";
+            response_json["message"] = "未提供认证令牌";
             res = crow::response(401, "application/json", response_json.dump());
             return;
         }
@@ -300,12 +300,12 @@ void WebController::handleAddFriend(const crow::request& req, crow::response& re
             res = crow::response(403, "application/json", response_json.dump());
             return;
         }
-        // 檢查好友是否存在
+        // 检查好友是否存在
         User friendUser = ChatService::instance()->getUserModel().query(friendId);
         if (friendUser.getId() == -1) {
             json response_json;
             response_json["success"] = false;
-            response_json["message"] = "用戶不存在";
+            response_json["message"] = "用户不存在";
             res = crow::response(404, "application/json", response_json.dump());
             return;
         }
@@ -318,7 +318,7 @@ void WebController::handleAddFriend(const crow::request& req, crow::response& re
     } catch (const std::exception& e) {
         json response_json;
         response_json["success"] = false;
-        response_json["message"] = "服務器錯誤: " + std::string(e.what());
+        response_json["message"] = "服务器错误: " + std::string(e.what());
         res = crow::response(500, "application/json", response_json.dump());
     }
 }
@@ -326,7 +326,7 @@ void WebController::handleAddFriend(const crow::request& req, crow::response& re
 void WebController::handleDebugUsers(const crow::request& req, crow::response& res)
 {
     try {
-        // 獲取所有用戶
+        // 获取所有用户
         std::vector<User> users = ChatService::instance()->getUserModel().queryAll();
         
         json response_json;
@@ -346,7 +346,7 @@ void WebController::handleDebugUsers(const crow::request& req, crow::response& r
     } catch (const std::exception& e) {
         json response_json;
         response_json["success"] = false;
-        response_json["message"] = "服務器錯誤: " + std::string(e.what());
+        response_json["message"] = "服务器错误: " + std::string(e.what());
         res = crow::response(500, "application/json", response_json.dump());
     }
 }
@@ -354,26 +354,26 @@ void WebController::handleDebugUsers(const crow::request& req, crow::response& r
 void WebController::handleDebugClear(const crow::request& req, crow::response& res)
 {
     try {
-        // 清理所有用戶數據（僅用於調試）
+        // 清理所有用户数据（僅用於调试）
         int userCount = ChatService::instance()->getUserModel().clearAll();
         
         json response_json;
         response_json["success"] = true;
-        response_json["message"] = "已清除 " + std::to_string(userCount) + " 個用戶的數據";
+        response_json["message"] = "已清除 " + std::to_string(userCount) + " 個用户的数据";
         
         res = crow::response(200, "application/json", response_json.dump());
     } catch (const std::exception& e) {
         json response_json;
         response_json["success"] = false;
-        response_json["message"] = "服務器錯誤: " + std::string(e.what());
+        response_json["message"] = "服务器错误: " + std::string(e.what());
         res = crow::response(500, "application/json", response_json.dump());
     }
 }
 
 void WebController::handleWebSocketConnection(crow::websocket::connection& conn)
 {
-    std::cout << "新的 WebSocket 連接" << std::endl;
-    // 只做初始化，不驗證token
+    std::cout << "新的 WebSocket 连接" << std::endl;
+    // 只做初始化，不验证token
 }
 
 void WebController::handleWebSocketMessage(crow::websocket::connection& conn, const std::string& data, bool is_binary)
@@ -396,16 +396,16 @@ void WebController::handleWebSocketMessage(crow::websocket::connection& conn, co
                 std::lock_guard<std::mutex> lock(_wsMutex);
                 _userWebSocketMap[userId] = &conn;
             }
-            // 更新用戶狀態
+            // 更新用户狀態
             User user = ChatService::instance()->getUserModel().query(userId);
             user.setState("online");
             ChatService::instance()->getUserModel().updateState(user);
-            json resp = { {"type", "AUTH_ACK"}, {"success", true}, {"message", "認證成功"} };
+            json resp = { {"type", "AUTH_ACK"}, {"success", true}, {"message", "认证成功"} };
             conn.send_text(resp.dump());
-            std::cout << "用戶 " << user.getName() << " WebSocket認證成功" << std::endl;
+            std::cout << "用户 " << user.getName() << " WebSocket认证成功" << std::endl;
             return;
         }
-        // 之後的消息必須已經認證
+        // 之後的消息必須已經认证
         int userId = -1;
         {
             std::lock_guard<std::mutex> lock(_wsMutex);
@@ -417,12 +417,12 @@ void WebController::handleWebSocketMessage(crow::websocket::connection& conn, co
             }
         }
         if (userId == -1) {
-            json resp = { {"type", "ERROR"}, {"message", "未認證，請先發送AUTH"} };
+            json resp = { {"type", "ERROR"}, {"message", "未认证，請先发送AUTH"} };
             conn.send_text(resp.dump());
             conn.close();
             return;
         }
-        // 聊天消息處理（同原邏輯）
+        // 聊天消息处理（同原邏輯）
         if (type == "ONE_CHAT_MSG") {
             int toId = message["toid"];
             std::string msg = message["msg"];
@@ -454,13 +454,13 @@ void WebController::handleWebSocketMessage(crow::websocket::connection& conn, co
             }
         }
     } catch (const std::exception& e) {
-        std::cout << "處理WebSocket消息失敗: " << e.what() << std::endl;
+        std::cout << "处理WebSocket消息失败: " << e.what() << std::endl;
     }
 }
 
 void WebController::handleWebSocketClose(crow::websocket::connection& conn)
 {
-    // 從連接映射中找到並移除用戶
+    // 從连接映射中找到並移除用户
     int userId = -1;
     {
         std::lock_guard<std::mutex> lock(_wsMutex);
@@ -474,12 +474,12 @@ void WebController::handleWebSocketClose(crow::websocket::connection& conn)
     }
     
     if (userId != -1) {
-        // 更新用戶狀態
+        // 更新用户狀態
         User user = ChatService::instance()->getUserModel().query(userId);
         if (user.getId() != -1) {
             user.setState("offline");
             ChatService::instance()->getUserModel().updateState(user);
-            std::cout << "用戶 " << user.getName() << " WebSocket連接關閉" << std::endl;
+            std::cout << "用户 " << user.getName() << " WebSocket连接关闭" << std::endl;
         }
     }
 }
@@ -492,14 +492,14 @@ void WebController::sendMessageToUser(int userId, const json& message)
         try {
             it->second->send_text(message.dump());
         } catch (const std::exception& e) {
-            std::cout << "發送消息給用戶 " << userId << " 失敗: " << e.what() << std::endl;
+            std::cout << "发送消息給用户 " << userId << " 失败: " << e.what() << std::endl;
         }
     }
 }
 
 std::string WebController::generateToken(int userId)
 {
-    // 簡單的JWT實現（實際生產環境應使用更安全的庫）
+    // 簡单的JWT实现（实際生產环境應使用更安全的庫）
     std::string header = "{\"alg\":\"HS256\",\"typ\":\"JWT\"}";
     std::string payload = "{\"userId\":" + std::to_string(userId) + ",\"exp\":" + std::to_string(time(nullptr) + 86400) + "}";
     
@@ -551,8 +551,8 @@ bool WebController::verifyToken(const std::string& token, int& userId)
         std::string encodedPayload = token.substr(pos1 + 1, pos2 - pos1 - 1);
         std::string encodedSignature = token.substr(pos2 + 1);
         
-        // 簡單驗證（實際生產環境應進行完整驗證）
-        // 這裡只是解析payload獲取userId
+        // 簡单验证（实際生產环境應进行完整验证）
+        // 這裡只是解析payload获取userId
         auto decode = [](const std::string& input) -> std::string {
             BIO* bio = BIO_new(BIO_s_mem());
             BIO* b64 = BIO_new(BIO_f_base64());
@@ -573,7 +573,7 @@ bool WebController::verifyToken(const std::string& token, int& userId)
         std::string payload = decode(encodedPayload);
         json payload_json = json::parse(payload);
         
-        // 檢查過期時間
+        // 检查过期時間
         if (payload_json["exp"].get<int64_t>() < time(nullptr)) {
             return false;
         }
@@ -582,7 +582,7 @@ bool WebController::verifyToken(const std::string& token, int& userId)
         return true;
         
     } catch (const std::exception& e) {
-        std::cout << "Token驗證失敗: " << e.what() << std::endl;
+        std::cout << "Token验证失败: " << e.what() << std::endl;
         return false;
     }
 } 

@@ -57,7 +57,7 @@ bool ServiceDiscovery::registerService(const std::string& serviceName,
         registration.tags = tags;
         registration.meta = meta;
         
-        // 添加健康檢查
+        // 添加健康检查
         Check healthCheck;
         healthCheck.http = "http://" + address + ":" + std::to_string(port + 1000) + "/health";
         healthCheck.interval = "10s";
@@ -125,7 +125,7 @@ ServiceInstance ServiceDiscovery::getInstance(const std::string& serviceName, Lo
     auto healthyInstances = getHealthyInstances(serviceName);
     
     if (healthyInstances.empty()) {
-        // 返回空實例
+        // 返回空实例
         return ServiceInstance{};
     }
     
@@ -201,7 +201,7 @@ void ServiceDiscovery::refreshServices() {
     }
     
     try {
-        // 獲取所有服務
+        // 获取所有服务
         std::vector<std::string> serviceNames = {"user-service", "social-service", "message-service"};
         
         for (const auto& serviceName : serviceNames) {
@@ -283,8 +283,8 @@ ServiceInstance ServiceDiscovery::leastConnSelect(const std::string& serviceName
         return ServiceInstance{};
     }
     
-    // 簡化實現：返回第一個實例
-    // 實際實現中需要維護連接計數
+    // 簡化实现：返回第一個实例
+    // 实際实现中需要維護连接計数
     return healthyInstances[0];
 }
 
@@ -294,8 +294,8 @@ ServiceInstance ServiceDiscovery::weightedSelect(const std::string& serviceName)
         return ServiceInstance{};
     }
     
-    // 簡化實現：返回第一個實例
-    // 實際實現中需要根據權重選擇
+    // 簡化实现：返回第一個实例
+    // 实際实现中需要根据权重選擇
     return healthyInstances[0];
 }
 
@@ -308,13 +308,13 @@ std::vector<ServiceInstance> ServiceDiscovery::fetchServicesFromConsul(const std
     }
     
     try {
-        // 這裡應該調用 ConsulClient 的方法來獲取服務列表
-        // 由於 ConsulClient 的實現可能不同，這裡提供一個框架
+        // 這裡應該调用 ConsulClient 的方法來获取服务列表
+        // 由於 ConsulClient 的实现可能不同，這裡提供一個框架
         
-        // 示例：假設 ConsulClient 有 getServiceInstances 方法
+        // 示例：假设 ConsulClient 有 getServiceInstances 方法
         // auto consulInstances = consulClient_->getServiceInstances(serviceName);
         
-        // 轉換為 ServiceInstance 格式
+        // 转换為 ServiceInstance 格式
         // for (const auto& consulInstance : consulInstances) {
         //     ServiceInstance instance;
         //     instance.id = consulInstance.id;

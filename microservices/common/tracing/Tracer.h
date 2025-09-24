@@ -25,11 +25,11 @@ public:
     bool initialize(const std::string& serviceName, 
                    const std::string& jaegerEndpoint = "http://localhost:14268/api/traces");
     
-    // 創建根 span
+    // 创建根 span
     std::shared_ptr<void> startSpan(const std::string& name, 
                                    const std::unordered_map<std::string, std::string>& attributes = {});
     
-    // 創建子 span
+    // 创建子 span
     std::shared_ptr<void> startChildSpan(const std::string& name,
                                         std::shared_ptr<void> parentSpan,
                                         const std::unordered_map<std::string, std::string>& attributes = {});
@@ -44,7 +44,7 @@ public:
     void addEvent(std::shared_ptr<void> span, const std::string& name, 
                  const std::unordered_map<std::string, std::string>& attributes = {});
     
-    // 設置錯誤狀態
+    // 设置错误狀態
     void setError(std::shared_ptr<void> span, const std::string& errorMessage);
     
     // 從 HTTP 頭部提取 trace context
@@ -71,7 +71,7 @@ public:
     // 從 span 中提取 span ID
     std::string getSpanId(std::shared_ptr<void> span);
     
-    // 創建帶有 trace context 的 span
+    // 创建帶有 trace context 的 span
     std::shared_ptr<void> startSpanWithContext(const std::string& name,
                                               const std::string& traceId,
                                               const std::string& parentSpanId,

@@ -88,5 +88,5 @@ void CircuitBreaker::reset() {
 }
 
 void CircuitBreaker::updateState() {
-    // 狀態更新邏輯已在各個方法中處理
+    // 狀態更新邏輯已在各個方法中处理
 }

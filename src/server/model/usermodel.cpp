@@ -86,7 +86,7 @@ void UserModel::resetState()
     }
 }
 
-// 查詢所有用戶
+// 查询所有用户
 std::vector<User> UserModel::queryAll()
 {
     std::vector<User> users;
@@ -114,7 +114,7 @@ std::vector<User> UserModel::queryAll()
     return users;
 }
 
-// 清空所有用戶（僅用於調試）
+// 清空所有用户（僅用於调试）
 int UserModel::clearAll()
 {
     char sql[1024] = "delete from user";
@@ -127,7 +127,7 @@ int UserModel::clearAll()
     return affected;
 }
 
-// 根據用戶名查詢
+// 根据用户名查询
 User UserModel::queryByName(const std::string& name)
 {
     char sql[1024] = {0};

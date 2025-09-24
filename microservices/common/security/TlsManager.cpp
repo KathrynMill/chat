@@ -57,17 +57,17 @@ bool TlsManager::createSslContext(const TlsConfig& config) {
     
     std::lock_guard<std::mutex> lock(sslCtxMutex_);
     
-    // 創建 SSL 上下文
+    // 创建 SSL 上下文
     sslCtx_ = SSL_CTX_new(TLS_server_method());
     if (!sslCtx_) {
         std::cerr << "Failed to create SSL context: " << getSslError() << "\n";
         return false;
     }
     
-    // 設置 SSL 選項
+    // 设置 SSL 選项
     setSslOptions(sslCtx_, config);
     
-    // 加載證書
+    // 加载证書
     if (!config.certFile.empty() && !config.keyFile.empty()) {
         if (!loadCertificateToContext(sslCtx_, config.certFile, config.keyFile)) {
             SSL_CTX_free(sslCtx_);
@@ -76,7 +76,7 @@ bool TlsManager::createSslContext(const TlsConfig& config) {
         }
     }
     
-    // 加載 CA 證書
+    // 加载 CA 证書
     if (!config.caFile.empty()) {
         if (!loadCaCertificateToContext(sslCtx_, config.caFile)) {
             SSL_CTX_free(sslCtx_);
@@ -137,7 +137,7 @@ bool TlsManager::performHandshake(std::shared_ptr<void> ssl) {
     if (result != 1) {
         int error = SSL_get_error(sslPtr, result);
         if (error == SSL_ERROR_WANT_READ || error == SSL_ERROR_WANT_WRITE) {
-            // 需要重試
+            // 需要重试
             return false;
         } else {
             handshakeFailures_++;
@@ -229,7 +229,7 @@ bool TlsManager::verifyCertificate(std::shared_ptr<void> ssl, const std::string&
         return false;
     }
     
-    // 驗證證書鏈
+    // 验证证書链
     int verifyResult = SSL_get_verify_result(sslPtr);
     if (verifyResult != X509_V_OK) {
         certificateErrors_++;
@@ -237,7 +237,7 @@ bool TlsManager::verifyCertificate(std::shared_ptr<void> ssl, const std::string&
         return false;
     }
     
-    // 驗證主機名
+    // 验证主機名
     if (!hostname.empty()) {
         if (X509_check_host(cert, hostname.c_str(), hostname.length(), 0, nullptr) != 1) {
             certificateErrors_++;
@@ -268,12 +268,12 @@ bool TlsManager::generateSelfSignedCertificate(const std::string& certFile,
             return false;
         }
         
-        // 創建證書
+        // 创建证書
         EVP_PKEY* pkey = nullptr;
         X509* x509 = X509_new();
         X509_NAME* name = nullptr;
         
-        // 讀取私鑰
+        // 读取私鑰
         FILE* keyFilePtr = fopen(keyFile.c_str(), "r");
         if (!keyFilePtr) {
             std::cerr << "Failed to open key file: " << keyFile << "\n";
@@ -290,20 +290,20 @@ bool TlsManager::generateSelfSignedCertificate(const std::string& certFile,
             return false;
         }
         
-        // 設置證書版本
+        // 设置证書版本
         X509_set_version(x509, 2);
         
-        // 設置序列號
+        // 设置序列號
         ASN1_INTEGER_set(X509_get_serialNumber(x509), 1);
         
-        // 設置有效期
+        // 设置有效期
         X509_gmtime_adj(X509_get_notBefore(x509), 0);
         X509_gmtime_adj(X509_get_notAfter(x509), validityDays * 24 * 60 * 60);
         
-        // 設置公鑰
+        // 设置公鑰
         X509_set_pubkey(x509, pkey);
         
-        // 設置主體名稱
+        // 设置主體名稱
         name = X509_get_subject_name(x509);
         X509_NAME_add_entry_by_txt(name, "C", MBSTRING_ASC, (unsigned char*)"US", -1, -1, 0);
         X509_NAME_add_entry_by_txt(name, "ST", MBSTRING_ASC, (unsigned char*)"State", -1, -1, 0);
@@ -311,10 +311,10 @@ bool TlsManager::generateSelfSignedCertificate(const std::string& certFile,
         X509_NAME_add_entry_by_txt(name, "O", MBSTRING_ASC, (unsigned char*)"Organization", -1, -1, 0);
         X509_NAME_add_entry_by_txt(name, "CN", MBSTRING_ASC, (unsigned char*)commonName.c_str(), -1, -1, 0);
         
-        // 設置頒發者名稱
+        // 设置頒发者名稱
         X509_set_issuer_name(x509, name);
         
-        // 簽名證書
+        // 簽名证書
         if (!X509_sign(x509, pkey, EVP_sha256())) {
             std::cerr << "Failed to sign certificate\n";
             X509_free(x509);
@@ -322,7 +322,7 @@ bool TlsManager::generateSelfSignedCertificate(const std::string& certFile,
             return false;
         }
         
-        // 保存證書
+        // 保存证書
         FILE* certFilePtr = fopen(certFile.c_str(), "w");
         if (!certFilePtr) {
             std::cerr << "Failed to open certificate file: " << certFile << "\n";
@@ -334,7 +334,7 @@ bool TlsManager::generateSelfSignedCertificate(const std::string& certFile,
         PEM_write_X509(certFilePtr, x509);
         fclose(certFilePtr);
         
-        // 清理資源
+        // 清理资源
         X509_free(x509);
         EVP_PKEY_free(pkey);
         
@@ -403,7 +403,7 @@ bool TlsManager::initializeOpenSSL() {
     SSL_load_error_strings();
     OpenSSL_add_all_algorithms();
     
-    // 初始化隨機數生成器
+    // 初始化隨機数生成器
     if (RAND_status() != 1) {
         std::cerr << "OpenSSL random number generator not seeded\n";
         return false;
@@ -435,25 +435,25 @@ void TlsManager::setSslOptions(std::shared_ptr<void> sslCtx, const TlsConfig& co
 #ifdef HAVE_OPENSSL
     SSL_CTX* ctx = static_cast<SSL_CTX*>(sslCtx);
     
-    // 設置最小和最大 TLS 版本
+    // 设置最小和最大 TLS 版本
     SSL_CTX_set_min_proto_version(ctx, config.minVersion);
     SSL_CTX_set_max_proto_version(ctx, config.maxVersion);
     
-    // 設置加密套件
+    // 设置加密套件
     if (!config.cipherSuites.empty()) {
         if (!SSL_CTX_set_cipher_list(ctx, config.cipherSuites.c_str())) {
             std::cerr << "Failed to set cipher suites\n";
         }
     }
     
-    // 設置驗證選項
+    // 设置验证選项
     if (config.verifyPeer) {
         SSL_CTX_set_verify(ctx, SSL_VERIFY_PEER | SSL_VERIFY_FAIL_IF_NO_PEER_CERT, nullptr);
     } else {
         SSL_CTX_set_verify(ctx, SSL_VERIFY_NONE, nullptr);
     }
     
-    // 設置會話緩存
+    // 设置會话緩存
     if (config.enableSessionResumption) {
         SSL_CTX_set_session_cache_mode(ctx, SSL_SESS_CACHE_SERVER);
         SSL_CTX_set_timeout(ctx, config.sessionTimeout);
@@ -467,19 +467,19 @@ bool TlsManager::loadCertificateToContext(std::shared_ptr<void> sslCtx,
 #ifdef HAVE_OPENSSL
     SSL_CTX* ctx = static_cast<SSL_CTX*>(sslCtx);
     
-    // 加載證書
+    // 加载证書
     if (SSL_CTX_use_certificate_file(ctx, certFile.c_str(), SSL_FILETYPE_PEM) != 1) {
         std::cerr << "Failed to load certificate file: " << certFile << "\n";
         return false;
     }
     
-    // 加載私鑰
+    // 加载私鑰
     if (SSL_CTX_use_PrivateKey_file(ctx, keyFile.c_str(), SSL_FILETYPE_PEM) != 1) {
         std::cerr << "Failed to load private key file: " << keyFile << "\n";
         return false;
     }
     
-    // 驗證私鑰和證書匹配
+    // 验证私鑰和证書匹配
     if (SSL_CTX_check_private_key(ctx) != 1) {
         std::cerr << "Private key and certificate do not match\n";
         return false;
@@ -532,7 +532,7 @@ CertificateInfo TlsManager::parseCertificate(const std::string& certFile) {
         info.subject = buffer;
     }
     
-    // 解析頒發者名稱
+    // 解析頒发者名稱
     X509_NAME* issuer = X509_get_issuer_name(cert);
     if (issuer) {
         char buffer[256];
@@ -569,7 +569,7 @@ CertificateInfo TlsManager::parseCertificate(const std::string& certFile) {
         ASN1_TIME_print(buffer, notAfter);
         info.notAfter = buffer;
         
-        // 檢查是否過期
+        // 检查是否过期
         time_t now = time(nullptr);
         time_t expiry = ASN1_TIME_get(notAfter);
         info.isExpired = (now > expiry);
@@ -639,7 +639,7 @@ bool TlsManager::createCertificateRequest(const std::string& csrFile,
                                         const std::string& keyFile,
                                         const std::string& commonName) {
 #ifdef HAVE_OPENSSL
-    // 讀取私鑰
+    // 读取私鑰
     FILE* keyFilePtr = fopen(keyFile.c_str(), "r");
     if (!keyFilePtr) {
         return false;
@@ -652,21 +652,21 @@ bool TlsManager::createCertificateRequest(const std::string& csrFile,
         return false;
     }
     
-    // 創建證書請求
+    // 创建证書請求
     X509_REQ* req = X509_REQ_new();
     if (!req) {
         EVP_PKEY_free(pkey);
         return false;
     }
     
-    // 設置版本
+    // 设置版本
     X509_REQ_set_version(req, 0);
     
-    // 設置主體名稱
+    // 设置主體名稱
     X509_NAME* name = X509_REQ_get_subject_name(req);
     X509_NAME_add_entry_by_txt(name, "CN", MBSTRING_ASC, (unsigned char*)commonName.c_str(), -1, -1, 0);
     
-    // 設置公鑰
+    // 设置公鑰
     X509_REQ_set_pubkey(req, pkey);
     
     // 簽名請求

@@ -21,30 +21,30 @@ bool Tracer::initialize(const std::string& serviceName, const std::string& jaege
     try {
         serviceName_ = serviceName;
         
-        // 創建 Jaeger exporter
+        // 创建 Jaeger exporter
         auto exporter = opentelemetry::exporter::jaeger::JaegerExporterFactory::Create();
         
-        // 創建 batch span processor
+        // 创建 batch span processor
         auto processor = opentelemetry::sdk::trace::BatchSpanProcessorFactory::Create(
             std::move(exporter),
             opentelemetry::sdk::trace::BatchSpanProcessorOptions{}
         );
         
-        // 創建 resource
+        // 创建 resource
         auto resource = opentelemetry::sdk::resource::Resource::Create({
             {"service.name", serviceName},
             {"service.version", "1.0.0"}
         });
         
-        // 創建 tracer provider
+        // 创建 tracer provider
         tracerProvider_ = opentelemetry::sdk::trace::TracerProviderFactory::Create(
             std::move(processor), resource
         );
         
-        // 設置全局 tracer provider
+        // 设置全局 tracer provider
         opentelemetry::trace::Provider::SetTracerProvider(tracerProvider_);
         
-        // 獲取 tracer
+        // 获取 tracer
         tracer_ = opentelemetry::trace::Provider::GetTracerProvider()->GetTracer(serviceName);
         
         initialized_ = true;
@@ -159,7 +159,7 @@ std::shared_ptr<void> Tracer::extractFromHeaders(const std::unordered_map<std::s
     auto it = headers.find("traceparent");
     if (it != headers.end()) {
         // 這裡應該解析 traceparent header
-        // 簡化實現
+        // 簡化实现
         return startSpan("extracted-span");
     }
     return nullptr;
@@ -234,14 +234,14 @@ std::string Tracer::generateSpanId() {
 std::string Tracer::getTraceId(std::shared_ptr<void> span) {
     if (!span) return "";
     
-    // 簡化實現：返回隨機生成的 trace ID
+    // 簡化实现：返回隨機生成的 trace ID
     return generateTraceId();
 }
 
 std::string Tracer::getSpanId(std::shared_ptr<void> span) {
     if (!span) return "";
     
-    // 簡化實現：返回隨機生成的 span ID
+    // 簡化实现：返回隨機生成的 span ID
     return generateSpanId();
 }
 
@@ -254,7 +254,7 @@ std::shared_ptr<void> Tracer::startSpanWithContext(const std::string& name,
         return nullptr;
     }
     
-    // 創建 span context
+    // 创建 span context
     auto span = tracer_->StartSpan(name);
     
     // 添加 trace ID 和 span ID 屬性

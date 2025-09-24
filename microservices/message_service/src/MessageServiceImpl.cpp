@@ -31,13 +31,13 @@ using json = nlohmann::json;
         resp->set_errmsg("insert message failed");
         return ::grpc::Status::OK;
     }
-    // 簡化：先當對方離線，寫入 offline_msgs
+    // 簡化：先當對方離線，写入 offline_msgs
     std::ostringstream off;
     off << "INSERT INTO offline_msgs(user_id, payload) VALUES("
         << m.to_id() << ",'{\\"type\\":\\"ONE_CHAT_MSG\\",\\"from_id\\":" << m.from_id() << ",\\"content\\":\\"" << m.content() << "\\"}')";
     db.execute(off.str());
     
-    // 發送 Kafka 訊息
+    // 发送 Kafka 讯息
 #ifdef HAVE_CPPKAFKA
     try {
         std::string brokers = std::getenv("KAFKA_BROKERS") ? std::getenv("KAFKA_BROKERS") : std::string("127.0.0.1:9092");
@@ -88,7 +88,7 @@ using json = nlohmann::json;
         resp->set_errmsg("insert group message failed");
         return ::grpc::Status::OK;
     }
-    // 發送 Kafka 群組訊息
+    // 发送 Kafka 群组讯息
 #ifdef HAVE_CPPKAFKA
     try {
         std::string brokers = std::getenv("KAFKA_BROKERS") ? std::getenv("KAFKA_BROKERS") : std::string("127.0.0.1:9092");

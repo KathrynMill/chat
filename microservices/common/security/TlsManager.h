@@ -16,19 +16,19 @@
 
 // TLS 配置
 struct TlsConfig {
-    std::string certFile;           // 證書文件路徑
-    std::string keyFile;            // 私鑰文件路徑
-    std::string caFile;             // CA 證書文件路徑
+    std::string certFile;           // 证書文件路径
+    std::string keyFile;            // 私鑰文件路径
+    std::string caFile;             // CA 证書文件路径
     std::string cipherSuites;       // 加密套件
-    bool verifyPeer = true;         // 是否驗證對端證書
-    bool verifyHostname = true;     // 是否驗證主機名
+    bool verifyPeer = true;         // 是否验证對端证書
+    bool verifyHostname = true;     // 是否验证主機名
     int minVersion = TLS1_2_VERSION; // 最小 TLS 版本
     int maxVersion = TLS1_3_VERSION; // 最大 TLS 版本
-    bool enableSessionResumption = true; // 啟用會話恢復
-    int sessionTimeout = 300;       // 會話超時時間（秒）
+    bool enableSessionResumption = true; // 启用會话恢复
+    int sessionTimeout = 300;       // 會话超時時間（秒）
 };
 
-// 證書信息
+// 证書信息
 struct CertificateInfo {
     std::string subject;
     std::string issuer;
@@ -49,52 +49,52 @@ public:
     // 初始化 TLS 管理器
     bool initialize();
     
-    // 創建 SSL 上下文
+    // 创建 SSL 上下文
     bool createSslContext(const TlsConfig& config);
     
-    // 創建 SSL 連接
+    // 创建 SSL 连接
     std::shared_ptr<void> createSslConnection(int socketFd, bool isServer = true);
     
-    // 執行 SSL 握手
+    // 执行 SSL 握手
     bool performHandshake(std::shared_ptr<void> ssl);
     
-    // SSL 讀取
+    // SSL 读取
     int sslRead(std::shared_ptr<void> ssl, void* buffer, int length);
     
-    // SSL 寫入
+    // SSL 写入
     int sslWrite(std::shared_ptr<void> ssl, const void* buffer, int length);
     
-    // 關閉 SSL 連接
+    // 关闭 SSL 连接
     void closeSslConnection(std::shared_ptr<void> ssl);
     
-    // 加載證書
+    // 加载证書
     bool loadCertificate(const std::string& certFile, const std::string& keyFile);
     
-    // 加載 CA 證書
+    // 加载 CA 证書
     bool loadCaCertificate(const std::string& caFile);
     
-    // 驗證證書
+    // 验证证書
     bool verifyCertificate(std::shared_ptr<void> ssl, const std::string& hostname = "");
     
-    // 獲取證書信息
+    // 获取证書信息
     CertificateInfo getCertificateInfo(const std::string& certFile);
     
-    // 生成自簽名證書
+    // 生成自簽名证書
     bool generateSelfSignedCertificate(const std::string& certFile, 
                                       const std::string& keyFile,
                                       const std::string& commonName,
                                       int validityDays = 365);
     
-    // 檢查證書是否即將過期
+    // 检查证書是否即將过期
     bool isCertificateExpiringSoon(const std::string& certFile, int daysThreshold = 30);
     
-    // 獲取 SSL 錯誤信息
+    // 获取 SSL 错误信息
     std::string getSslError();
     
-    // 清理資源
+    // 清理资源
     void cleanup();
     
-    // 獲取 TLS 統計
+    // 获取 TLS 统計
     struct TlsStats {
         int totalConnections;
         int activeConnections;
@@ -114,27 +114,27 @@ private:
     // 初始化 OpenSSL
     bool initializeOpenSSL();
     
-    // 創建 SSL 上下文
+    // 创建 SSL 上下文
     std::shared_ptr<void> createSslContextInternal(const TlsConfig& config);
     
-    // 設置 SSL 選項
+    // 设置 SSL 選项
     void setSslOptions(std::shared_ptr<void> sslCtx, const TlsConfig& config);
     
-    // 加載證書到 SSL 上下文
+    // 加载证書到 SSL 上下文
     bool loadCertificateToContext(std::shared_ptr<void> sslCtx, 
                                  const std::string& certFile, 
                                  const std::string& keyFile);
     
-    // 加載 CA 證書到 SSL 上下文
+    // 加载 CA 证書到 SSL 上下文
     bool loadCaCertificateToContext(std::shared_ptr<void> sslCtx, const std::string& caFile);
     
-    // 解析證書
+    // 解析证書
     CertificateInfo parseCertificate(const std::string& certFile);
     
     // 生成 RSA 密鑰對
     bool generateRsaKeyPair(const std::string& keyFile, int keySize = 2048);
     
-    // 創建證書請求
+    // 创建证書請求
     bool createCertificateRequest(const std::string& csrFile, 
                                  const std::string& keyFile,
                                  const std::string& commonName);
@@ -144,7 +144,7 @@ private:
     std::mutex sslCtxMutex_;
 #endif
     
-    // 統計信息
+    // 统計信息
     std::atomic<int> totalConnections_;
     std::atomic<int> activeConnections_;
     std::atomic<int> handshakeFailures_;

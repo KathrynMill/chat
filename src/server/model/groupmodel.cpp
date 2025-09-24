@@ -121,7 +121,7 @@ vector<int> GroupModel::queryGroupUsers(int userid, int groupid)
     return idVec;
 }
 
-// 根據 groupid 查詢群組所有成員（不含自己）
+// 根据 groupid 查询群组所有成員（不含自己）
 std::vector<GroupUser> GroupModel::queryGroupUsers(int groupid)
 {
     std::vector<GroupUser> users;
