@@ -48,6 +48,15 @@ public:
     // 從 Consul KV 加載配置
     bool loadFromConsul();
     
+    // 從 Consul KV 加載特定配置
+    bool loadFromConsul(const std::string& key);
+    
+    // 監聽 Consul KV 變更
+    void watchConsulChanges();
+    
+    // 設置 Consul 監聽間隔
+    void setConsulWatchInterval(std::chrono::seconds interval);
+    
     // 從文件加載配置
     bool loadFromFile(const std::string& configFile);
     

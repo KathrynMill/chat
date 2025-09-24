@@ -15,7 +15,9 @@ add_library(chat_common STATIC
     metrics/MetricsCollector.cpp
     config/ConfigManager.cpp
     security/TlsManager.cpp
+    security/TlsIntegration.cpp
     logging/Logger.cpp
+    observability/ObservabilityManager.cpp
 )
 
 target_include_directories(chat_common PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
@@ -100,6 +102,23 @@ if(PKG_CONFIG_FOUND)
         message(WARNING "Common: Prometheus NOT found - metrics disabled")
     endif()
 endif()
+
+# 可選依賴：spdlog（用於結構化日誌）
+find_package(spdlog QUIET)
+if(spdlog_FOUND)
+    target_compile_definitions(chat_common PRIVATE HAVE_SPDLOG=1)
+    target_link_libraries(chat_common PRIVATE spdlog::spdlog)
+    message(STATUS "Common: spdlog FOUND - enabling structured logging")
+else()
+    message(WARNING "Common: spdlog NOT found - using basic logging")
+endif()
+
+# 示例程序
+add_executable(EnterpriseFeaturesExample examples/EnterpriseFeaturesExample.cpp)
+target_link_libraries(EnterpriseFeaturesExample chat_common)
+
+add_executable(AdvancedFeaturesExample examples/AdvancedFeaturesExample.cpp)
+target_link_libraries(AdvancedFeaturesExample chat_common)
 
 
 

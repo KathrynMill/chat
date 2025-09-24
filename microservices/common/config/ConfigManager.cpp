@@ -93,25 +93,22 @@ bool ConfigManager::loadFromConsul() {
     }
     
     try {
-        // 這裡應該調用 ConsulClient 的方法來獲取 KV 存儲
-        // 由於 ConsulClient 的實現可能不同，這裡提供一個框架
+        // 獲取所有配置鍵
+        std::vector<std::string> configKeys = {
+            "service/name", "service/port", "service/enable_tls",
+            "database/host", "database/port", "database/user", "database/password", "database/name",
+            "kafka/brokers", "consul/url", "jwt/secret",
+            "jaeger/endpoint", "metrics/port", "log/level"
+        };
         
-        // 示例：假設 ConsulClient 有 getKVPairs 方法
-        // auto kvPairs = consulClient_->getKVPairs(configPrefix_);
+        int loadedCount = 0;
+        for (const auto& key : configKeys) {
+            if (loadFromConsul(key)) {
+                loadedCount++;
+            }
+        }
         
-        // 轉換為配置項
-        // for (const auto& kv : kvPairs) {
-        //     std::string key = kv.first.substr(configPrefix_.length());
-        //     std::string value = kv.second;
-        //     
-        //     consulConfigs_[key] = value;
-        //     
-        //     std::lock_guard<std::mutex> lock(configsMutex_);
-        //     configs_[key] = ConfigItem(key, value);
-        //     totalConfigs_++;
-        // }
-        
-        std::cout << "Loaded " << consulConfigs_.size() << " configurations from Consul\n";
+        std::cout << "Loaded " << loadedCount << " configurations from Consul\n";
         return true;
         
     } catch (const std::exception& e) {
@@ -121,6 +118,89 @@ bool ConfigManager::loadFromConsul() {
 #else
     return false;
 #endif
+}
+
+bool ConfigManager::loadFromConsul(const std::string& key) {
+#ifdef HAVE_CURL
+    if (!consulClient_) {
+        return false;
+    }
+    
+    try {
+        std::string fullKey = configPrefix_ + key;
+        
+        // 這裡應該調用 ConsulClient 的方法來獲取 KV 值
+        // 由於 ConsulClient 的實現可能不同，這裡提供一個框架
+        
+        // 示例：假設 ConsulClient 有 getKV 方法
+        // std::string value = consulClient_->getKV(fullKey);
+        // if (!value.empty()) {
+        //     consulConfigs_[key] = value;
+        //     
+        //     std::lock_guard<std::mutex> lock(configsMutex_);
+        //     configs_[key] = ConfigItem(key, value);
+        //     totalConfigs_++;
+        //     
+        //     return true;
+        // }
+        
+        return false;
+        
+    } catch (const std::exception& e) {
+        std::cerr << "Failed to load configuration from Consul: " << key << " - " << e.what() << "\n";
+        return false;
+    }
+#else
+    return false;
+#endif
+}
+
+void ConfigManager::watchConsulChanges() {
+    if (!consulClient_ || !enableHotReload_) {
+        return;
+    }
+    
+    std::thread([this]() {
+        while (watching_) {
+            try {
+                // 這裡應該實現 Consul KV 變更監聽
+                // 可以使用 Consul 的 blocking query 或 watch API
+                
+                // 示例實現：
+                // auto changes = consulClient_->watchKV(configPrefix_);
+                // for (const auto& change : changes) {
+                //     std::string key = change.first.substr(configPrefix_.length());
+                //     std::string newValue = change.second;
+                //     
+                //     // 檢查配置是否真的變更了
+                //     std::string oldValue;
+                //     {
+                //         std::lock_guard<std::mutex> lock(configsMutex_);
+                //         auto it = configs_.find(key);
+                //         if (it != configs_.end()) {
+                //             oldValue = it->second.value;
+                //         }
+                //     }
+                //     
+                //     if (oldValue != newValue) {
+                //         // 更新配置
+                //         setString(key, newValue);
+                //         std::cout << "Configuration updated from Consul: " << key << " = " << newValue << "\n";
+                //     }
+                // }
+                
+                std::this_thread::sleep_for(watchInterval_);
+                
+            } catch (const std::exception& e) {
+                std::cerr << "Consul watch error: " << e.what() << "\n";
+                std::this_thread::sleep_for(std::chrono::seconds(5));
+            }
+        }
+    }).detach();
+}
+
+void ConfigManager::setConsulWatchInterval(std::chrono::seconds interval) {
+    watchInterval_ = interval;
 }
 
 bool ConfigManager::loadFromFile(const std::string& configFile) {
