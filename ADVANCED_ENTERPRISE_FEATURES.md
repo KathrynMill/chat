@@ -1,14 +1,14 @@
-# 企業级微服务框架 - 进阶功能实现
+# 企业级微服务框架 - 进阶功能实现
 
 ## 概述
 
-本文檔詳細介紹了企業级微服务框架的进阶功能实现，包括 TLS 加密集成、配置熱更新、以及日誌與指标的深度集成。這些功能確保了系统在生產环境中的安全性、可維護性和可觀测性。
+本文档详细介紹了企业级微服务框架的进阶功能实现，包括 TLS 加密集成、配置熱更新、以及日志與指标的深度集成。这些功能確保了系统在生產环境中的安全性、可維護性和可觀测性。
 
 ## 1. TLS 加密集成
 
 ### 1.1 功能概述
 
-TLS 加密集成模组 (`TlsIntegration`) 提供了完整的 TLS 加密解決方案，支持：
+TLS 加密集成模组 (`TlsIntegration`) 提供了完整的 TLS 加密解决方案，支持：
 
 - **muduo 网絡庫 TLS 集成**：為 TcpServer 和 TcpConnection 提供 TLS 加密
 - **gRPC TLS 集成**：為 gRPC 服务器和客户端提供 TLS 憑证
@@ -106,7 +106,7 @@ auto server = builder.BuildAndStart();
 
 ### 1.4 统計监控
 
-TLS 集成提供詳細的统計信息：
+TLS 集成提供详细的统計信息：
 
 ```cpp
 auto stats = tlsIntegration.getStats();
@@ -138,10 +138,10 @@ std::cout << "  - Current Protocol: " << stats.currentProtocol << "\n";
 ```cpp
 class ConfigManager {
 public:
-    // 從 Consul KV 加载配置
+    // 从 Consul KV 加载配置
     bool loadFromConsul();
     
-    // 從 Consul KV 加载特定配置
+    // 从 Consul KV 加载特定配置
     bool loadFromConsul(const std::string& key);
     
     // 监聽 Consul KV 变更
@@ -155,9 +155,9 @@ public:
 #### 配置变更回调
 
 ```cpp
-// 註冊配置变更回调
+// 注册配置变更回调
 configManager.registerChangeCallback("log.level", [](const std::string& newValue) {
-    // 更新日誌级別
+    // 更新日志级別
     auto& logger = Logger::getInstance();
     logger.setLevel(newValue);
     std::cout << "Log level updated to: " << newValue << "\n";
@@ -181,7 +181,7 @@ configManager.registerChangeCallback("service.enable_tls", [](const std::string&
 auto& configManager = ConfigManager::getInstance();
 configManager.initialize("chat-service", "consul://localhost:8500/v1/kv/chat/", true);
 
-// 從多個源加载配置
+// 从多个源加载配置
 configManager.loadFromEnvironment();  // 环境变数
 configManager.loadFromConsul();       // Consul KV
 configManager.loadFromFile("config.json"); // 配置文件
@@ -195,7 +195,7 @@ configManager.watchConsulChanges();
 ```cpp
 // 设置配置变更回调
 configManager.registerChangeCallback("database.host", [](const std::string& newValue) {
-    // 重新连接资料庫
+    // 重新连接数据库
     auto& dbPool = ConnectionPool::getInstance();
     dbPool.updateConfig("host", newValue);
     std::cout << "Database host updated to: " << newValue << "\n";
@@ -220,16 +220,16 @@ std::cout << "  - Hot Reload Enabled: " << stats.hotReloadEnabled << "\n";
 std::cout << "  - Change Callbacks: " << stats.changeCallbacks << "\n";
 ```
 
-## 3. 日誌與指标集成
+## 3. 日志與指标集成
 
 ### 3.1 功能概述
 
-可觀测性管理器 (`ObservabilityManager`) 统一管理日誌、指标和追蹤：
+可觀测性管理器 (`ObservabilityManager`) 统一管理日志、指标和追踪：
 
-- **统一接口**：提供统一的日誌、指标和追蹤接口
-- **自动集成**：自动在关键代碼路径中插入可觀测性代碼
+- **统一接口**：提供统一的日志、指标和追踪接口
+- **自动集成**：自动在关键代码路径中插入可觀测性代码
 - **模板支持**：提供模板函数自动包裝操作
-- **统計监控**：提供詳細的可觀测性统計信息
+- **统計监控**：提供详细的可觀测性统計信息
 
 ### 3.2 核心组件
 
@@ -251,7 +251,7 @@ public:
                     std::chrono::milliseconds duration,
                     const std::string& error = "");
     
-    // 記录资料庫操作
+    // 記录数据库操作
     void logDatabaseOperation(const std::string& operation,
                              const std::string& table,
                              const std::string& status,
@@ -293,10 +293,10 @@ auto result = observability.executeWithObservability(
 );
 ```
 
-#### 资料庫操作可觀测性
+#### 数据库操作可觀测性
 
 ```cpp
-// 使用可觀测性包裝的资料庫操作
+// 使用可觀测性包裝的数据库操作
 auto result = observability.executeDatabaseWithObservability(
     "insert_user",
     "users",
@@ -306,10 +306,10 @@ auto result = observability.executeDatabaseWithObservability(
 );
 ```
 
-#### 分散式追蹤
+#### 分布式追踪
 
 ```cpp
-// 开始追蹤
+// 开始追踪
 std::string traceId = observability.startSpan("user_login", "", {
     {"user_id", "123"},
     {"ip", "192.168.1.100"}
@@ -399,7 +399,7 @@ void setupConfigurationCallbacks() {
         tlsIntegration.updateConfig(config);
     });
     
-    // 日誌级別变更
+    // 日志级別变更
     configManager.registerChangeCallback("log.level", [](const std::string& newValue) {
         auto& observability = ObservabilityManager::getInstance();
         observability.updateLogLevel(newValue);
@@ -411,7 +411,7 @@ void setupConfigurationCallbacks() {
         observability.updateMetricsConfig(newValue);
     });
     
-    // 追蹤端點变更
+    // 追踪端點变更
     configManager.registerChangeCallback("jaeger.endpoint", [](const std::string& newValue) {
         auto& observability = ObservabilityManager::getInstance();
         observability.updateTracingConfig(newValue);
@@ -419,13 +419,13 @@ void setupConfigurationCallbacks() {
 }
 ```
 
-### 4.3 業务操作示例
+### 4.3 业务操作示例
 
 ```cpp
 void handleUserLogin(const std::string& userId, const std::string& token) {
     auto& observability = ObservabilityManager::getInstance();
     
-    // 开始追蹤
+    // 开始追踪
     std::string traceId = observability.startSpan("user_login", "", {
         {"user_id", userId}
     });
@@ -493,7 +493,7 @@ export TLS_CERT_FILE=/etc/ssl/certs/server.crt
 export TLS_KEY_FILE=/etc/ssl/private/server.key
 export TLS_CA_FILE=/etc/ssl/certs/ca.crt
 
-# 资料庫配置
+# 数据库配置
 export DB_HOST=localhost
 export DB_PORT=3306
 export DB_USER=chat_user
@@ -596,12 +596,12 @@ grpc_calls_total{service="UserService", method="GetUser", status="success"}
 grpc_call_duration_ms{service="UserService", method="GetUser", status="success"}
 grpc_errors_total{service="UserService", method="GetUser", status="error"}
 
-# 资料庫操作指标
+# 数据库操作指标
 db_operations_total{operation="insert", table="users", status="success"}
 db_operation_duration_ms{operation="insert", table="users", status="success"}
 db_errors_total{operation="insert", table="users", status="error"}
 
-# 業务操作指标
+# 业务操作指标
 business_operations_total{operation="user_login", status="success"}
 business_operations_total{operation="user_login", status="error"}
 
@@ -737,23 +737,23 @@ groups:
    - 启用证書验证
 
 2. **配置安全**：
-   - 敏感配置使用环境变数或加密存儲
+   - 敏感配置使用环境变数或加密存储
    - 限制配置变更权限
-   - 審計配置变更
+   - 审计配置变更
 
 ### 7.2 性能最佳实踐
 
 1. **TLS 优化**：
    - 启用會话緩存
    - 使用 TLS 1.3
-   - 配置適當的超時時間
+   - 配置適當的超时時間
 
 2. **可觀测性优化**：
-   - 使用異步日誌記录
+   - 使用异步日志記录
    - 合理设置採樣率
    - 避免过度指标收集
 
-### 7.3 运維最佳实踐
+### 7.3 运维最佳实踐
 
 1. **监控**：
    - 设置关键指标告警
@@ -761,21 +761,21 @@ groups:
    - 监控配置变更頻率
 
 2. **故障排除**：
-   - 使用分散式追蹤定位問題
-   - 分析日誌模式
+   - 使用分布式追踪定位问题
+   - 分析日志模式
    - 监控 TLS 握手失败
 
-## 8. 總結
+## 8. 总结
 
-企業级微服务框架的进阶功能实现提供了：
+企业级微服务框架的进阶功能实现提供了：
 
-1. **TLS 加密集成**：完整的端到端加密解決方案
+1. **TLS 加密集成**：完整的端到端加密解决方案
 2. **配置熱更新**：無需重启的配置管理
-3. **日誌與指标集成**：统一的可觀测性管理
+3. **日志與指标集成**：统一的可觀测性管理
 
-這些功能確保了系统在生產环境中的：
-- **安全性**：TLS 加密保護数据傳輸
+这些功能確保了系统在生產环境中的：
+- **安全性**：TLS 加密保护数据传输
 - **可維護性**：配置熱更新减少停機時間
-- **可觀测性**：完整的日誌、指标和追蹤
+- **可觀测性**：完整的日志、指标和追踪
 
-通过這些进阶功能，企業级微服务框架已經具备了生產环境所需的所有核心特性，可以自信地部署到生產环境中。
+通过这些进阶功能，企业级微服务框架已經具备了生產环境所需的所有核心特性，可以自信地部署到生產环境中。

@@ -1,20 +1,20 @@
-# C++ Web 聊天服务 API 文檔
+# C++ Web 聊天服务 API 文档
 
 ## HTTP API
 
-### 1. 註冊
+### 1. 注册
 - 路径：`POST /api/register`
-- 請求：`{ "name": "用户名", "pwd": "密碼" }`
+- 请求：`{ "name": "用户名", "pwd": "密码" }`
 - 回應：`{ success, message, userId, userName }`
 
-### 2. 登入
+### 2. 登录
 - 路径：`POST /api/login`
-- 請求：`{ "id": 用户ID, "pwd": "密碼" }`
+- 请求：`{ "id": 用户ID, "pwd": "密码" }`
 - 回應：`{ success, message, token, user: { id, name } }`
 
 ### 3. 找回用户ID
 - 路径：`POST /api/find-user-id`
-- 請求：`{ "name": "用户名", "pwd": "密碼" }`
+- 请求：`{ "name": "用户名", "pwd": "密码" }`
 - 回應：`{ success, message, userId, userName }`
 
 ### 4. 查询好友列表
@@ -25,7 +25,7 @@
 ### 5. 添加好友
 - 路径：`POST /api/friends/add`
 - Header: `Authorization: Bearer <token>`
-- 請求：`{ "friendId": 好友ID }`
+- 请求：`{ "friendId": 好友ID }`
 - 回應：`{ success, message }`
 
 ## WebSocket

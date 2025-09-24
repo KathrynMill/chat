@@ -1,4 +1,4 @@
-# 企業级聊天系统运維指南
+# 企业级聊天系统运维指南
 
 ## 目录
 - [部署架构](#部署架构)
@@ -48,33 +48,33 @@
 | Social Service | 8082 | 健康检查/指标 |
 | Message Service | 60053 | gRPC |
 | Message Service | 8083 | 健康检查/指标 |
-| MariaDB | 3306 | 资料庫 |
-| Kafka | 9092 | 讯息隊列 |
+| MariaDB | 3306 | 数据库 |
+| Kafka | 9092 | 消息队列 |
 | Consul | 8500 | 服务发现 |
 | Prometheus | 9090 | 指标收集 |
 | Grafana | 3000 | 监控面板 |
-| Jaeger | 16686 | 追蹤視覺化 |
+| Jaeger | 16686 | 追踪可视化 |
 
 ## 监控與告警
 
 ### 关键指标
 
-#### 業务指标
-- **在線用户数** (`online_users`): 當前在線用户数量
-- **活躍连接数** (`active_connections`): 當前活躍连接数量
+#### 业务指标
+- **在线用户数** (`online_users`): 當前在线用户数量
+- **活跃连接数** (`active_connections`): 當前活跃连接数量
 - **讯息吞吐量** (`kafka_messages_total`): 每秒处理的讯息数量
 
 #### 技术指标
 - **gRPC 调用率** (`grpc_calls_total`): 每秒 gRPC 调用次数
-- **gRPC 延遲** (`grpc_call_duration_seconds`): gRPC 调用延遲分佈
-- **HTTP 請求率** (`http_requests_total`): 每秒 HTTP 請求次数
-- **资料庫查询率** (`database_queries_total`): 每秒资料庫查询次数
+- **gRPC 延迟** (`grpc_call_duration_seconds`): gRPC 调用延迟分佈
+- **HTTP 请求率** (`http_requests_total`): 每秒 HTTP 请求次数
+- **数据库查询率** (`database_queries_total`): 每秒数据库查询次数
 
 #### 系统指标
 - **CPU 使用率**: 各服务 CPU 使用情況
-- **記憶體使用率**: 各服务記憶體使用情況
-- **网路 I/O**: 网路流量统計
-- **磁碟 I/O**: 磁碟读写统計
+- **内存使用率**: 各服务内存使用情況
+- **网络 I/O**: 网络流量统計
+- **磁盘 I/O**: 磁盘读写统計
 
 ### 告警规则
 
@@ -98,27 +98,27 @@
   annotations:
     summary: "服务 {{ $labels.service }} 错误率过高"
 
-# 高延遲
+# 高延迟
 - alert: HighLatency
   expr: histogram_quantile(0.95, rate(grpc_call_duration_seconds_bucket[5m])) > 1
   for: 3m
   labels:
     severity: warning
   annotations:
-    summary: "服务 {{ $labels.service }} 延遲过高"
+    summary: "服务 {{ $labels.service }} 延迟过高"
 ```
 
 ### 监控面板
 
 #### Grafana 儀表板
-- **系统概覽**: 服务健康狀態、资源使用率
+- **系统概覽**: 服务健康状态、资源使用率
 - **性能监控**: gRPC/HTTP 性能指标
-- **業务监控**: 用户活动、讯息统計
-- **基础设施**: 资料庫、Kafka、Consul 狀態
+- **业务监控**: 用户活动、讯息统計
+- **基础设施**: 数据库、Kafka、Consul 状态
 
 ## 故障排查
 
-### 常見問題
+### 常见问题
 
 #### 1. 服务启动失败
 **症狀**: 服务無法启动或立即退出
@@ -127,45 +127,45 @@
 # 检查端口佔用
 netstat -tulpn | grep :7000
 
-# 检查 Docker 容器狀態
+# 检查 Docker 容器状态
 docker ps -a
 
-# 查看容器日誌
+# 查看容器日志
 docker logs <container_id>
 
 # 检查环境变数
 docker exec <container_id> env
 ```
 
-**解決方案**:
+**解决方案**:
 - 釋放被佔用的端口
 - 检查环境变数配置
-- 验证依賴服务狀態
+- 验证依賴服务状态
 
-#### 2. 资料庫连接問題
-**症狀**: 服务無法连接资料庫
+#### 2. 数据库连接问题
+**症狀**: 服务無法连接数据库
 **排查步骤**:
 ```bash
-# 检查 MariaDB 狀態
+# 检查 MariaDB 状态
 docker exec -it chat-mariadb mysql -u root -p
 
-# 测试资料庫连接
+# 测试数据库连接
 telnet $DB_HOST $DB_PORT
 
-# 检查资料庫配置
+# 检查数据库配置
 echo $DB_HOST $DB_PORT $DB_NAME
 ```
 
-**解決方案**:
-- 检查资料庫服务狀態
+**解决方案**:
+- 检查数据库服务状态
 - 验证连接參数
-- 检查网路连接
+- 检查网络连接
 
-#### 3. Kafka 连接問題
+#### 3. Kafka 连接问题
 **症狀**: 讯息無法发送到 Kafka
 **排查步骤**:
 ```bash
-# 检查 Kafka 狀態
+# 检查 Kafka 状态
 docker exec -it chat-kafka kafka-topics --list --bootstrap-server localhost:9092
 
 # 检查 Kafka 配置
@@ -175,31 +175,31 @@ echo $KAFKA_BROKERS
 docker exec -it chat-kafka kafka-console-producer --bootstrap-server localhost:9092 --topic test
 ```
 
-**解決方案**:
-- 检查 Kafka 服务狀態
+**解决方案**:
+- 检查 Kafka 服务状态
 - 验证 broker 地址
 - 检查主題配置
 
-#### 4. 服务发现問題
+#### 4. 服务发现问题
 **症狀**: 服务無法相互发现
 **排查步骤**:
 ```bash
-# 检查 Consul 狀態
+# 检查 Consul 状态
 curl http://localhost:8500/v1/status/leader
 
-# 检查服务註冊
+# 检查服务注册
 curl http://localhost:8500/v1/agent/services
 
 # 检查服务目录
 curl http://localhost:8500/v1/catalog/services
 ```
 
-**解決方案**:
-- 检查 Consul 服务狀態
-- 验证服务註冊配置
-- 检查网路连接
+**解决方案**:
+- 检查 Consul 服务状态
+- 验证服务注册配置
+- 检查网络连接
 
-### 性能問題排查
+### 性能问题排查
 
 #### 1. 高 CPU 使用率
 **排查步骤**:
@@ -214,29 +214,29 @@ docker exec <container_id> top
 curl http://localhost:9090/api/v1/query?query=rate(process_cpu_seconds_total[5m])
 ```
 
-#### 2. 高記憶體使用率
+#### 2. 高内存使用率
 **排查步骤**:
 ```bash
-# 查看記憶體使用情況
+# 查看内存使用情況
 docker stats
 
-# 检查記憶體洩漏
+# 检查内存洩漏
 docker exec <container_id> cat /proc/meminfo
 
-# 分析記憶體使用
+# 分析内存使用
 curl http://localhost:9090/api/v1/query?query=process_resident_memory_bytes
 ```
 
-#### 3. 网路延遲問題
+#### 3. 网络延迟问题
 **排查步骤**:
 ```bash
-# 测试网路延遲
+# 测试网络延迟
 ping <service_host>
 
-# 检查网路连接
+# 检查网络连接
 netstat -an | grep ESTABLISHED
 
-# 分析网路指标
+# 分析网络指标
 curl http://localhost:9090/api/v1/query?query=rate(network_receive_bytes_total[5m])
 ```
 
@@ -244,14 +244,14 @@ curl http://localhost:9090/api/v1/query?query=rate(network_receive_bytes_total[5
 
 ### 系统优化
 
-#### 1. 资料庫优化
+#### 1. 数据库优化
 ```sql
 -- 添加索引
 CREATE INDEX idx_messages_created_at ON messages(created_at);
 CREATE INDEX idx_messages_from_to ON messages(from_id, to_id);
 CREATE INDEX idx_offline_msgs_user_id ON offline_msgs(user_id);
 
--- 分區表（大量数据時）
+-- 分区表（大量数据時）
 ALTER TABLE messages PARTITION BY RANGE (YEAR(created_at)) (
     PARTITION p2023 VALUES LESS THAN (2024),
     PARTITION p2024 VALUES LESS THAN (2025)
@@ -260,7 +260,7 @@ ALTER TABLE messages PARTITION BY RANGE (YEAR(created_at)) (
 
 #### 2. Kafka 优化
 ```properties
-# 增加分區数
+# 增加分区数
 num.partitions=3
 
 # 优化批次大小
@@ -271,13 +271,13 @@ linger.ms=5
 compression.type=snappy
 ```
 
-#### 3. 應用优化
+#### 3. 应用优化
 ```cpp
 // 连接池配置
 const int DB_POOL_SIZE = 10;
 const int GRPC_POOL_SIZE = 5;
 
-// 快取配置
+// 缓存配置
 const int CACHE_SIZE = 1000;
 const int CACHE_TTL = 300; // 5 minutes
 ```
@@ -307,7 +307,7 @@ resources:
 
 ## 备份與恢复
 
-### 资料庫备份
+### 数据库备份
 ```bash
 # 全量备份
 docker exec chat-mariadb mysqldump -u root -p --all-databases > full_backup_$(date +%Y%m%d_%H%M%S).sql
@@ -315,7 +315,7 @@ docker exec chat-mariadb mysqldump -u root -p --all-databases > full_backup_$(da
 # 增量备份
 docker exec chat-mariadb mysqldump -u root -p --single-transaction --routines --triggers chatdb > incremental_backup_$(date +%Y%m%d_%H%M%S).sql
 
-# 自动备份腳本
+# 自动备份脚本
 #!/bin/bash
 BACKUP_DIR="/backup"
 DATE=$(date +%Y%m%d_%H%M%S)
@@ -340,7 +340,7 @@ kubectl get all -n chat-system -o yaml > k8s_backup_$(date +%Y%m%d_%H%M%S).yaml
 # 停止服务
 docker-compose -f docker-compose.enterprise.yml down
 
-# 恢复资料庫
+# 恢复数据库
 docker exec -i chat-mariadb mysql -u root -p chatdb < backup_file.sql
 
 # 启动服务
@@ -352,9 +352,9 @@ docker-compose -f docker-compose.enterprise.yml up -d
 
 ## 安全配置
 
-### 网路安全
+### 网络安全
 ```yaml
-# 网路策略
+# 网络策略
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
@@ -392,7 +392,7 @@ data:
 
 ### 资料加密
 ```bash
-# 资料庫加密
+# 数据库加密
 docker run -d \
   --name chat-mariadb \
   -e MYSQL_ROOT_PASSWORD=password \
@@ -407,20 +407,20 @@ docker run -d \
 2. 实现服务邏輯
 3. 添加 Docker 配置
 4. 更新 Kubernetes 部署
-5. 配置监控和追蹤
+5. 配置监控和追踪
 
 ### 添加新功能
 1. 更新 protobuf 定義
-2. 实现業务邏輯
-3. 添加资料庫遷移
-4. 更新 API 文檔
+2. 实现业务邏輯
+3. 添加数据库遷移
+4. 更新 API 文档
 5. 添加测试用例
 
 ### 性能调优
 1. 分析性能瓶頸
-2. 优化资料庫查询
-3. 调整快取策略
-4. 优化网路配置
+2. 优化数据库查询
+3. 调整缓存策略
+4. 优化网络配置
 5. 监控性能指标
 
 ---
@@ -438,12 +438,12 @@ docker-compose -f docker-compose.enterprise.yml down
 # 緊急恢复
 docker-compose -f docker-compose.enterprise.yml up -d
 
-# 查看所有日誌
+# 查看所有日志
 docker-compose -f docker-compose.enterprise.yml logs
 ```
 
 ### 监控工具
 - **系统监控**: `./deploy/monitor.sh overview`
 - **健康检查**: `./deploy/monitor.sh health`
-- **日誌查看**: `./deploy/monitor.sh logs`
+- **日志查看**: `./deploy/monitor.sh logs`
 - **故障排查**: `./deploy/monitor.sh troubleshoot`
