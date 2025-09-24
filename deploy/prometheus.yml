@@ -1,0 +1,60 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+rule_files:
+  # - "first_rules.yml"
+  # - "second_rules.yml"
+
+scrape_configs:
+  # Prometheus 自身指標
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+
+  # Gateway 指標
+  - job_name: 'gateway'
+    static_configs:
+      - targets: ['gateway:8080']
+    metrics_path: '/metrics'
+    scrape_interval: 10s
+
+  # User Service 指標
+  - job_name: 'user-service'
+    static_configs:
+      - targets: ['user-service:8080']
+    metrics_path: '/metrics'
+    scrape_interval: 10s
+
+  # Social Service 指標
+  - job_name: 'social-service'
+    static_configs:
+      - targets: ['social-service:8080']
+    metrics_path: '/metrics'
+    scrape_interval: 10s
+
+  # Message Service 指標
+  - job_name: 'message-service'
+    static_configs:
+      - targets: ['message-service:8080']
+    metrics_path: '/metrics'
+    scrape_interval: 10s
+
+  # Consul 指標
+  - job_name: 'consul'
+    static_configs:
+      - targets: ['consul:8500']
+    metrics_path: '/v1/agent/metrics'
+    scrape_interval: 30s
+
+  # MariaDB 指標（如果啟用了 mysqld_exporter）
+  - job_name: 'mariadb'
+    static_configs:
+      - targets: ['mariadb-exporter:9104']
+    scrape_interval: 30s
+
+  # Kafka 指標（如果啟用了 kafka_exporter）
+  - job_name: 'kafka'
+    static_configs:
+      - targets: ['kafka-exporter:9308']
+    scrape_interval: 30s

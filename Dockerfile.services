@@ -1,0 +1,80 @@
+# 多階段建置微服務
+FROM ubuntu:22.04 AS builder
+
+# 安裝建置依賴
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    cmake \
+    pkg-config \
+    libprotobuf-dev \
+    protobuf-compiler \
+    protobuf-compiler-grpc \
+    libgrpc++-dev \
+    libmariadb-dev \
+    libcurl4-openssl-dev \
+    libssl-dev \
+    libcppkafka-dev \
+    nlohmann-json3-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+# 設置工作目錄
+WORKDIR /app
+
+# 複製源碼
+COPY . .
+
+# 建置
+RUN mkdir -p build && cd build && \
+    cmake -DBUILD_MICROSERVICES=ON .. && \
+    make -j$(nproc)
+
+# 運行階段
+FROM ubuntu:22.04 AS runtime
+
+# 安裝運行時依賴
+RUN apt-get update && apt-get install -y \
+    libprotobuf32 \
+    libgrpc++1 \
+    libmariadb3 \
+    libcurl4 \
+    libssl3 \
+    libcppkafka1 \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+# 創建非 root 用戶
+RUN useradd -m -u 1000 appuser
+
+# 設置工作目錄
+WORKDIR /app
+
+# 複製建置產物
+COPY --from=builder /app/build/microservices/user_service/user_service .
+COPY --from=builder /app/build/microservices/social_service/social_service .
+COPY --from=builder /app/build/microservices/message_service/message_service .
+COPY --from=builder /app/build/microservices/proto/*.pb.* ./proto/
+
+# 設置權限
+RUN chown -R appuser:appuser /app
+
+# 切換到非 root 用戶
+USER appuser
+
+# 暴露端口
+EXPOSE 60051 60052 60053 8080
+
+# 健康檢查
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+    CMD curl -f http://localhost:8080/health || exit 1
+
+# 啟動命令（可通過環境變數選擇服務）
+CMD if [ "$SERVICE_TYPE" = "user" ]; then \
+        ./user_service; \
+    elif [ "$SERVICE_TYPE" = "social" ]; then \
+        ./social_service; \
+    elif [ "$SERVICE_TYPE" = "message" ]; then \
+        ./message_service; \
+    else \
+        echo "Please set SERVICE_TYPE environment variable"; \
+        exit 1; \
+    fi

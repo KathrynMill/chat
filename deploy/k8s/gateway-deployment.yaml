@@ -1,0 +1,84 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gateway-deployment
+  namespace: chat-system
+  labels:
+    app: gateway
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: gateway
+  template:
+    metadata:
+      labels:
+        app: gateway
+    spec:
+      containers:
+      - name: gateway
+        image: chat-gateway:latest
+        ports:
+        - containerPort: 7000
+          name: tcp
+        - containerPort: 8080
+          name: metrics
+        env:
+        - name: CONSUL_URL
+          valueFrom:
+            configMapKeyRef:
+              name: chat-config
+              key: CONSUL_URL
+        - name: KAFKA_BROKERS
+          valueFrom:
+            configMapKeyRef:
+              name: chat-config
+              key: KAFKA_BROKERS
+        - name: JWT_SECRET
+          valueFrom:
+            configMapKeyRef:
+              name: chat-config
+              key: JWT_SECRET
+        - name: JAEGER_ENDPOINT
+          valueFrom:
+            configMapKeyRef:
+              name: chat-config
+              key: JAEGER_ENDPOINT
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "250m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8080
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8080
+          initialDelaySeconds: 5
+          periodSeconds: 5
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: gateway-service
+  namespace: chat-system
+  labels:
+    app: gateway
+spec:
+  selector:
+    app: gateway
+  ports:
+  - name: tcp
+    port: 7000
+    targetPort: 7000
+  - name: metrics
+    port: 8080
+    targetPort: 8080
+  type: LoadBalancer

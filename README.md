@@ -128,13 +128,17 @@ cd /home/aa/Documents/chat/build
 
 ### 服務環境變數
 - `REDIS_URL`：預設 `tcp://127.0.0.1:6379`
-- Kafka broker 預設 `127.0.0.1:9092`（在程式碼內寫死，後續可改環境變數）
+- `KAFKA_BROKERS`：預設 `127.0.0.1:9092`
 - DB（MariaDB/MySQL）：
   - `DB_HOST` 預設 `127.0.0.1`
   - `DB_PORT` 預設 `3306`
   - `DB_USER` 預設 `root`
   - `DB_PASS` 預設空字串
   - `DB_NAME` 預設 `chatdb`
+- 微服務多實例（Gateway 負載均衡）：
+  - `SERVICE_USER`：預設 `127.0.0.1:60051`，可設多個用逗號分隔
+  - `SERVICE_SOCIAL`：預設 `127.0.0.1:60052`，可設多個用逗號分隔
+  - `SERVICE_MESSAGE`：預設 `127.0.0.1:60053`，可設多個用逗號分隔
 
 ### 初始化資料庫（示例）
 ```sql
@@ -224,5 +228,193 @@ printf '{"msgid":1001,"from_id":1,"to_id":2,"content":"hi","timestamp_ms":169000
 # 6) 群聊
 printf '{"msgid":1003,"from_id":1,"group_id":1,"content":"hello group","timestamp_ms":1690000000001}\n' | nc 127.0.0.1 7000
 ```
+
+### 企業級特性（已實作）
+- **服務發現與負載均衡**：Gateway 支援多實例輪詢（透過 `SERVICE_*` 環境變數）
+- **異步訊息推送**：MessageService 寫入 DB 後發送 Kafka，Gateway 消費並推送到在線用戶
+- **連線管理**：Gateway 維護用戶連線映射，支援即時推送與離線消息
+- **最小持久化**：Social/Message 服務支援 DB 寫入與查詢
+
+### 多實例部署示例
+```bash
+# 啟動多個 MessageService 實例
+export DB_HOST=127.0.0.1 DB_NAME=chatdb
+./microservices/message_service/message_service &
+./microservices/message_service/message_service &  # 第二個實例
+
+# Gateway 設定多實例負載均衡
+export SERVICE_MESSAGE="127.0.0.1:60053,127.0.0.1:60054"
+export KAFKA_BROKERS="127.0.0.1:9092"
+./microservices/gateway/chat_gateway &
+```
+
+### 企業級特性（已實作）
+- **Consul 服務註冊與發現**：微服務自動註冊到 Consul，Gateway 動態發現健康實例
+- **熔斷器機制**：gRPC 客戶端熔斷器，防止級聯失敗
+- **JWT 身份驗證**：Gateway 驗證 JWT token，透傳用戶身份
+- **服務發現與負載均衡**：支援多實例輪詢與健康檢查
+- **異步訊息推送**：Kafka 消息隊列與實時推送
+- **連線管理**：用戶會話綁定與離線消息
+
+### 環境變數（企業級）
+- `CONSUL_URL`：Consul 服務地址，預設 `http://127.0.0.1:8500`
+- `JWT_SECRET`：JWT 簽名密鑰，預設 `your-secret-key`
+- `KAFKA_BROKERS`：Kafka 集群地址，預設 `127.0.0.1:9092`
+- `SERVICE_*`：微服務多實例配置（逗號分隔）
+
+### 企業級部署示例
+```bash
+# 啟動 Consul
+docker run -d --name consul -p 8500:8500 consul:latest
+
+# 設定企業級環境變數
+export CONSUL_URL=http://127.0.0.1:8500
+export JWT_SECRET=your-production-secret-key
+export KAFKA_BROKERS=127.0.0.1:9092
+export DB_HOST=127.0.0.1 DB_NAME=chatdb
+
+# 啟動微服務（自動註冊到 Consul）
+./microservices/user_service/user_service &
+./microservices/social_service/social_service &
+./microservices/message_service/message_service &
+
+# 啟動 Gateway（自動發現服務）
+./microservices/gateway/chat_gateway &
+```
+
+## 運維特性（已實作）
+
+### 分散式追蹤（OpenTelemetry）
+- 跨服務請求追蹤與 span 注入
+- gRPC/HTTP 自動追蹤
+- Jaeger 整合與視覺化
+- 環境變數：`JAEGER_ENDPOINT=http://localhost:14268/api/traces`
+
+### 指標監控（Prometheus）
+- 服務健康狀態監控
+- gRPC/HTTP 性能指標（QPS、延遲、錯誤率）
+- 業務指標（在線用戶、連接數、資料庫查詢）
+- 環境變數：`METRICS_PORT=8080`
+
+### 容器化部署
+- Docker 多階段建置優化
+- Docker Compose 一鍵部署
+- Kubernetes 生產級配置
+- 自動健康檢查與重啟
+
+### 監控面板（Grafana）
+- 服務健康狀態儀表板
+- 性能指標可視化
+- 業務指標監控
+- 訪問地址：`http://localhost:3000`（admin/admin）
+
+## 部署指南
+
+### Docker Compose 部署
+```bash
+# 啟動完整企業級環境
+docker-compose -f docker-compose.enterprise.yml up -d
+
+# 查看服務狀態
+docker-compose -f docker-compose.enterprise.yml ps
+
+# 查看日誌
+docker-compose -f docker-compose.enterprise.yml logs -f gateway
+```
+
+### Kubernetes 部署
+```bash
+# 創建命名空間
+kubectl apply -f deploy/k8s/namespace.yaml
+
+# 部署配置
+kubectl apply -f deploy/k8s/configmap.yaml
+
+# 部署服務
+kubectl apply -f deploy/k8s/services-deployment.yaml
+kubectl apply -f deploy/k8s/gateway-deployment.yaml
+
+# 查看部署狀態
+kubectl get pods -n chat-system
+kubectl get services -n chat-system
+```
+
+### 監控與故障排查
+```bash
+# 查看 Prometheus 指標
+curl http://localhost:9090/targets
+
+# 查看 Jaeger 追蹤
+open http://localhost:16686
+
+# 查看 Grafana 儀表板
+open http://localhost:3000
+
+# 查看服務健康狀態
+curl http://localhost:8080/health
+curl http://localhost:8081/health
+curl http://localhost:8082/health
+curl http://localhost:8083/health
+```
+
+## 運維工具
+
+### 部署腳本
+```bash
+# 一鍵部署（Docker Compose）
+./deploy/deploy.sh
+
+# Kubernetes 部署
+./deploy/deploy.sh --k8s
+
+# 清理部署
+./deploy/deploy.sh --cleanup
+```
+
+### 監控工具
+```bash
+# 系統狀態概覽
+./deploy/monitor.sh overview
+
+# 健康檢查
+./deploy/monitor.sh health
+
+# 查看日誌
+./deploy/monitor.sh logs gateway 100
+
+# 實時日誌
+./deploy/monitor.sh follow gateway
+
+# 故障排查指南
+./deploy/monitor.sh troubleshoot
+```
+
+### 測試工具
+```bash
+# 完整測試套件
+./deploy/test.sh full
+
+# 快速測試
+./deploy/test.sh quick
+
+# 性能測試
+./deploy/test.sh performance
+
+# 健康檢查測試
+./deploy/test.sh health
+```
+
+### 運維文檔
+- **完整運維指南**: `deploy/OPERATIONS.md`
+- **部署腳本**: `deploy/deploy.sh`
+- **監控腳本**: `deploy/monitor.sh`
+- **測試腳本**: `deploy/test.sh`
+
+### 後續擴展建議
+- 日誌聚合（ELK Stack）
+- 服務網格（Istio）
+- 自動擴縮容（HPA）
+- 金絲雀部署
+- 混沌工程（Chaos Monkey）
 
 

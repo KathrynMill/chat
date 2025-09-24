@@ -1,0 +1,209 @@
+version: '3.8'
+
+services:
+  # 基礎設施服務
+  consul:
+    image: consul:1.16
+    container_name: chat-consul
+    ports:
+      - "8500:8500"
+    environment:
+      - CONSUL_BIND_INTERFACE=eth0
+    command: >
+      consul agent
+      -server
+      -bootstrap-expect=1
+      -ui
+      -client=0.0.0.0
+      -advertise=127.0.0.1
+      -data-dir=/consul/data
+    volumes:
+      - consul-data:/consul/data
+    healthcheck:
+      test: ["CMD", "consul", "members"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  jaeger:
+    image: jaegertracing/all-in-one:1.50
+    container_name: chat-jaeger
+    ports:
+      - "16686:16686"
+      - "14268:14268"
+    environment:
+      - COLLECTOR_OTLP_ENABLED=true
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:14269/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  prometheus:
+    image: prom/prometheus:v2.48.0
+    container_name: chat-prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./deploy/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus-data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--storage.tsdb.retention.time=200h'
+      - '--web.enable-lifecycle'
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9090/-/healthy"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  grafana:
+    image: grafana/grafana:10.2.0
+    container_name: chat-grafana
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./deploy/grafana/dashboards:/etc/grafana/provisioning/dashboards
+      - ./deploy/grafana/datasources:/etc/grafana/provisioning/datasources
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # 微服務
+  user-service:
+    build:
+      context: .
+      dockerfile: Dockerfile.services
+    container_name: chat-user-service
+    environment:
+      - SERVICE_TYPE=user
+      - CONSUL_URL=http://consul:8500
+      - DB_HOST=mariadb
+      - DB_PORT=3306
+      - DB_USER=root
+      - DB_PASS=password
+      - DB_NAME=chatdb
+      - JAEGER_ENDPOINT=http://jaeger:14268/api/traces
+    ports:
+      - "60051:60051"
+      - "8081:8080"
+    depends_on:
+      - consul
+      - mariadb
+      - jaeger
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  social-service:
+    build:
+      context: .
+      dockerfile: Dockerfile.services
+    container_name: chat-social-service
+    environment:
+      - SERVICE_TYPE=social
+      - CONSUL_URL=http://consul:8500
+      - DB_HOST=mariadb
+      - DB_PORT=3306
+      - DB_USER=root
+      - DB_PASS=password
+      - DB_NAME=chatdb
+      - JAEGER_ENDPOINT=http://jaeger:14268/api/traces
+    ports:
+      - "60052:60052"
+      - "8082:8080"
+    depends_on:
+      - consul
+      - mariadb
+      - jaeger
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  message-service:
+    build:
+      context: .
+      dockerfile: Dockerfile.services
+    container_name: chat-message-service
+    environment:
+      - SERVICE_TYPE=message
+      - CONSUL_URL=http://consul:8500
+      - DB_HOST=mariadb
+      - DB_PORT=3306
+      - DB_USER=root
+      - DB_PASS=password
+      - DB_NAME=chatdb
+      - KAFKA_BROKERS=kafka:9092
+      - JAEGER_ENDPOINT=http://jaeger:14268/api/traces
+    ports:
+      - "60053:60053"
+      - "8083:8080"
+    depends_on:
+      - consul
+      - mariadb
+      - kafka
+      - jaeger
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  gateway:
+    build:
+      context: .
+      dockerfile: Dockerfile.gateway
+    container_name: chat-gateway
+    environment:
+      - CONSUL_URL=http://consul:8500
+      - KAFKA_BROKERS=kafka:9092
+      - JWT_SECRET=your-production-secret-key
+      - JAEGER_ENDPOINT=http://jaeger:14268/api/traces
+    ports:
+      - "7000:7000"
+      - "8080:8080"
+    depends_on:
+      - consul
+      - kafka
+      - jaeger
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # 資料庫
+  mariadb:
+    image: mariadb:10.11
+    container_name: chat-mariadb
+    environment:
+      - MYSQL_ROOT_PASSWORD=password
+      - MYSQL_DATABASE=chatdb
+    ports:
+      - "3306:3306"
+    volumes:
+      - mariadb-data:/var/lib/mysql
+      - ./deploy/init.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+volumes:
+  consul-data:
+  mariadb-data:
+  prometheus-data:
+  grafana-data:

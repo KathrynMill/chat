@@ -1,0 +1,292 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: user-service-deployment
+  namespace: chat-system
+  labels:
+    app: user-service
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: user-service
+  template:
+    metadata:
+      labels:
+        app: user-service
+    spec:
+      containers:
+      - name: user-service
+        image: chat-services:latest
+        env:
+        - name: SERVICE_TYPE
+          value: "user"
+        - name: CONSUL_URL
+          valueFrom:
+            configMapKeyRef:
+              name: chat-config
+              key: CONSUL_URL
+        - name: DB_HOST
+          valueFrom:
+            configMapKeyRef:
+              name: chat-config
+              key: DB_HOST
+        - name: DB_PORT
+          valueFrom:
+            configMapKeyRef:
+              name: chat-config
+              key: DB_PORT
+        - name: DB_USER
+          valueFrom:
+            configMapKeyRef:
+              name: chat-config
+              key: DB_USER
+        - name: DB_NAME
+          valueFrom:
+            configMapKeyRef:
+              name: chat-config
+              key: DB_NAME
+        - name: JAEGER_ENDPOINT
+          valueFrom:
+            configMapKeyRef:
+              name: chat-config
+              key: JAEGER_ENDPOINT
+        ports:
+        - containerPort: 60051
+          name: grpc
+        - containerPort: 8080
+          name: metrics
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "100m"
+          limits:
+            memory: "256Mi"
+            cpu: "200m"
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8080
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8080
+          initialDelaySeconds: 5
+          periodSeconds: 5
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: user-service
+  namespace: chat-system
+  labels:
+    app: user-service
+spec:
+  selector:
+    app: user-service
+  ports:
+  - name: grpc
+    port: 60051
+    targetPort: 60051
+  - name: metrics
+    port: 8080
+    targetPort: 8080
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: social-service-deployment
+  namespace: chat-system
+  labels:
+    app: social-service
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: social-service
+  template:
+    metadata:
+      labels:
+        app: social-service
+    spec:
+      containers:
+      - name: social-service
+        image: chat-services:latest
+        env:
+        - name: SERVICE_TYPE
+          value: "social"
+        - name: CONSUL_URL
+          valueFrom:
+            configMapKeyRef:
+              name: chat-config
+              key: CONSUL_URL
+        - name: DB_HOST
+          valueFrom:
+            configMapKeyRef:
+              name: chat-config
+              key: DB_HOST
+        - name: DB_PORT
+          valueFrom:
+            configMapKeyRef:
+              name: chat-config
+              key: DB_PORT
+        - name: DB_USER
+          valueFrom:
+            configMapKeyRef:
+              name: chat-config
+              key: DB_USER
+        - name: DB_NAME
+          valueFrom:
+            configMapKeyRef:
+              name: chat-config
+              key: DB_NAME
+        - name: JAEGER_ENDPOINT
+          valueFrom:
+            configMapKeyRef:
+              name: chat-config
+              key: JAEGER_ENDPOINT
+        ports:
+        - containerPort: 60052
+          name: grpc
+        - containerPort: 8080
+          name: metrics
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "100m"
+          limits:
+            memory: "256Mi"
+            cpu: "200m"
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8080
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8080
+          initialDelaySeconds: 5
+          periodSeconds: 5
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: social-service
+  namespace: chat-system
+  labels:
+    app: social-service
+spec:
+  selector:
+    app: social-service
+  ports:
+  - name: grpc
+    port: 60052
+    targetPort: 60052
+  - name: metrics
+    port: 8080
+    targetPort: 8080
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: message-service-deployment
+  namespace: chat-system
+  labels:
+    app: message-service
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: message-service
+  template:
+    metadata:
+      labels:
+        app: message-service
+    spec:
+      containers:
+      - name: message-service
+        image: chat-services:latest
+        env:
+        - name: SERVICE_TYPE
+          value: "message"
+        - name: CONSUL_URL
+          valueFrom:
+            configMapKeyRef:
+              name: chat-config
+              key: CONSUL_URL
+        - name: DB_HOST
+          valueFrom:
+            configMapKeyRef:
+              name: chat-config
+              key: DB_HOST
+        - name: DB_PORT
+          valueFrom:
+            configMapKeyRef:
+              name: chat-config
+              key: DB_PORT
+        - name: DB_USER
+          valueFrom:
+            configMapKeyRef:
+              name: chat-config
+              key: DB_USER
+        - name: DB_NAME
+          valueFrom:
+            configMapKeyRef:
+              name: chat-config
+              key: DB_NAME
+        - name: KAFKA_BROKERS
+          valueFrom:
+            configMapKeyRef:
+              name: chat-config
+              key: KAFKA_BROKERS
+        - name: JAEGER_ENDPOINT
+          valueFrom:
+            configMapKeyRef:
+              name: chat-config
+              key: JAEGER_ENDPOINT
+        ports:
+        - containerPort: 60053
+          name: grpc
+        - containerPort: 8080
+          name: metrics
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "100m"
+          limits:
+            memory: "256Mi"
+            cpu: "200m"
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8080
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8080
+          initialDelaySeconds: 5
+          periodSeconds: 5
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: message-service
+  namespace: chat-system
+  labels:
+    app: message-service
+spec:
+  selector:
+    app: message-service
+  ports:
+  - name: grpc
+    port: 60053
+    targetPort: 60053
+  - name: metrics
+    port: 8080
+    targetPort: 8080

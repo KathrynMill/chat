@@ -4,7 +4,6 @@ project(social_service)
 add_executable(social_service
     src/main.cpp
     src/SocialServiceImpl.cpp
-    ../common/db/Db.cpp
 )
 
 target_include_directories(social_service PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
@@ -14,7 +13,7 @@ find_package(Protobuf QUIET)
 find_package(gRPC QUIET)
 if(Protobuf_FOUND AND gRPC_FOUND)
     target_compile_definitions(social_service PRIVATE HAVE_GRPC=1)
-    target_link_libraries(social_service PRIVATE gRPC::grpc++ protobuf::libprotobuf chat_protos)
+    target_link_libraries(social_service PRIVATE gRPC::grpc++ protobuf::libprotobuf chat_protos chat_common)
     message(STATUS "SocialService: gRPC/Protobuf FOUND - enabling server")
 else()
     message(WARNING "SocialService: gRPC/Protobuf NOT found - building without gRPC")

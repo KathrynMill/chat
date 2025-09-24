@@ -4,7 +4,6 @@ project(message_service)
 add_executable(message_service
     src/main.cpp
     src/MessageServiceImpl.cpp
-    ../common/db/Db.cpp
 )
 
 target_include_directories(message_service PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
@@ -14,7 +13,7 @@ find_package(Protobuf QUIET)
 find_package(gRPC QUIET)
 if(Protobuf_FOUND AND gRPC_FOUND)
     target_compile_definitions(message_service PRIVATE HAVE_GRPC=1)
-    target_link_libraries(message_service PRIVATE gRPC::grpc++ protobuf::libprotobuf chat_protos)
+    target_link_libraries(message_service PRIVATE gRPC::grpc++ protobuf::libprotobuf chat_protos chat_common)
     message(STATUS "MessageService: gRPC/Protobuf FOUND - enabling server")
 else()
     message(WARNING "MessageService: gRPC/Protobuf NOT found - building without gRPC")

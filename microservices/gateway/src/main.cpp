@@ -2,6 +2,13 @@
 
 #include "json.hpp"
 using json = nlohmann::json;
+#include <unordered_map>
+#include <mutex>
+#include <atomic>
+#include <vector>
+#include <cstdlib>
+#include <thread>
+#include <chrono>
 
 #ifdef HAVE_CPPKAFKA
 #include <cppkafka/cppkafka.h>
@@ -24,17 +31,49 @@ using namespace muduo::net;
 #include "social_service.grpc.pb.h"
 #endif
 
+#ifdef HAVE_CURL
+#include "consul/ConsulClient.h"
+#endif
+
+#ifdef HAVE_OPENSSL
+#include "circuit/CircuitBreaker.h"
+#include "jwt/JwtValidator.h"
+#endif
+
+static inline std::vector<std::string> parseEndpoints(const char* envName, const char* fallback) {
+    std::vector<std::string> out;
+    const char* v = std::getenv(envName);
+    std::string s = v ? v : std::string(fallback ? fallback : "");
+    if (s.empty()) return out;
+    size_t start = 0;
+    while (start < s.size()) {
+        size_t pos = s.find(',', start);
+        std::string item = s.substr(start, pos == std::string::npos ? std::string::npos : pos - start);
+        if (!item.empty()) out.push_back(item);
+        if (pos == std::string::npos) break;
+        start = pos + 1;
+    }
+    return out;
+}
+
+static GatewayServer* g_gateway = nullptr; // for Kafka consumer access
+
+#ifdef HAVE_CURL
+static ConsulClient* g_consul = nullptr;
+#endif
+
+#ifdef HAVE_OPENSSL
+static JwtValidator* g_jwt = nullptr;
+#endif
+
 class GatewayServer {
 public:
     GatewayServer(EventLoop* loop, const InetAddress& listenAddr)
         : server_(loop, listenAddr, "chat-gateway") {
 #ifdef HAVE_GRPC
-        auto user_channel = grpc::CreateChannel("127.0.0.1:60051", grpc::InsecureChannelCredentials());
-        user_stub_ = chat::user::UserService::NewStub(user_channel);
-        auto msg_channel = grpc::CreateChannel("127.0.0.1:60053", grpc::InsecureChannelCredentials());
-        message_stub_ = chat::message::MessageService::NewStub(msg_channel);
-        auto social_channel = grpc::CreateChannel("127.0.0.1:60052", grpc::InsecureChannelCredentials());
-        social_stub_ = chat::social::SocialService::NewStub(social_channel);
+        user_eps_ = parseEndpoints("SERVICE_USER", "127.0.0.1:60051");
+        msg_eps_ = parseEndpoints("SERVICE_MESSAGE", "127.0.0.1:60053");
+        social_eps_ = parseEndpoints("SERVICE_SOCIAL", "127.0.0.1:60052");
 #endif
         server_.setConnectionCallback(
             [this](const TcpConnectionPtr& conn) {
@@ -42,6 +81,7 @@ public:
                     std::cout << "[Gateway] new connection from " << conn->peerAddress().toIpPort() << "\n";
                 } else {
                     std::cout << "[Gateway] connection closed " << conn->peerAddress().toIpPort() << "\n";
+                    unbindConn(conn);
                 }
             });
         server_.setMessageCallback(
@@ -58,13 +98,17 @@ public:
                         req.set_password(js.value("password", std::string("")));
                         chat::user::LoginResponse resp;
                         grpc::ClientContext ctx;
-                        auto status = user_stub_->Login(&ctx, req, &resp);
+                        auto stub = getUserStub();
+                        auto status = stub->Login(&ctx, req, &resp);
                         json out;
                         out["msgid"] = 2; // LOGIN_MSG_ACK
                         if (status.ok()) {
                             out["errno"] = resp.errno();
                             out["errmsg"] = resp.errmsg();
                             out["user"] = { {"id", resp.user().id()}, {"name", resp.user().name()}, {"state", resp.user().state()} };
+                            if (resp.errno() == 0) {
+                                bindUser(resp.user().id(), conn);
+                            }
                         } else {
                             out = { {"msgid", 2}, {"errno", 1}, {"errmsg", status.error_message()} };
                         }
@@ -83,7 +127,8 @@ public:
                         m->set_msg_id(js.value("msg_id", std::string("")));
                         chat::message::OneChatResponse resp;
                         grpc::ClientContext ctx2;
-                        auto status2 = message_stub_->OneChat(&ctx2, req, &resp);
+                        auto stub = getMsgStub();
+                        auto status2 = stub->OneChat(&ctx2, req, &resp);
                         json out = { {"msgid", 1002}, {"errno", status2.ok() ? resp.errno() : 1}, {"errmsg", status2.ok() ? resp.errmsg() : status2.error_message()} };
                         conn->send(out.dump());
 #else
@@ -100,7 +145,8 @@ public:
                         m->set_msg_id(js.value("msg_id", std::string("")));
                         chat::message::GroupChatResponse resp;
                         grpc::ClientContext ctx3;
-                        auto status3 = message_stub_->GroupChat(&ctx3, req, &resp);
+                        auto stub = getMsgStub();
+                        auto status3 = stub->GroupChat(&ctx3, req, &resp);
                         json out = { {"msgid", 1004}, {"errno", status3.ok() ? resp.errno() : 1}, {"errmsg", status3.ok() ? resp.errmsg() : status3.error_message()} };
                         conn->send(out.dump());
 #else
@@ -113,7 +159,8 @@ public:
                         req.set_friend_id(js.value("friend_id", 0));
                         chat::social::AddFriendResponse resp;
                         grpc::ClientContext ctx4;
-                        auto status4 = social_stub_->AddFriend(&ctx4, req, &resp);
+                        auto stub = getSocialStub();
+                        auto status4 = stub->AddFriend(&ctx4, req, &resp);
                         json out = { {"msgid", 2002}, {"errno", status4.ok() ? resp.errno() : 1}, {"errmsg", status4.ok() ? resp.errmsg() : status4.error_message()} };
                         conn->send(out.dump());
 #else
@@ -127,7 +174,8 @@ public:
                         req.set_desc(js.value("desc", std::string("")));
                         chat::social::CreateGroupResponse resp;
                         grpc::ClientContext ctx5;
-                        auto status5 = social_stub_->CreateGroup(&ctx5, req, &resp);
+                        auto stub = getSocialStub();
+                        auto status5 = stub->CreateGroup(&ctx5, req, &resp);
                         json out = { {"msgid", 2004}, {"errno", status5.ok() ? resp.errno() : 1}, {"errmsg", status5.ok() ? resp.errmsg() : status5.error_message()}, {"group_id", resp.group_id()} };
                         conn->send(out.dump());
 #else
@@ -140,7 +188,8 @@ public:
                         req.set_group_id(js.value("group_id", 0));
                         chat::social::AddGroupResponse resp;
                         grpc::ClientContext ctx6;
-                        auto status6 = social_stub_->AddGroup(&ctx6, req, &resp);
+                        auto stub = getSocialStub();
+                        auto status6 = stub->AddGroup(&ctx6, req, &resp);
                         json out = { {"msgid", 2006}, {"errno", status6.ok() ? resp.errno() : 1}, {"errmsg", status6.ok() ? resp.errmsg() : status6.error_message()} };
                         conn->send(out.dump());
 #else
@@ -160,17 +209,113 @@ public:
 private:
     TcpServer server_;
 #ifdef HAVE_GRPC
-    std::unique_ptr<chat::user::UserService::Stub> user_stub_;
+    std::vector<std::string> user_eps_, msg_eps_, social_eps_;
+    std::atomic<size_t> user_rr_{0}, msg_rr_{0}, social_rr_{0};
+    
+#ifdef HAVE_OPENSSL
+    std::unordered_map<std::string, CircuitBreaker> circuitBreakers_;
 #endif
+
+    std::unique_ptr<chat::user::UserService::Stub> getUserStub() {
+#ifdef HAVE_CURL
+        // 從 Consul 獲取服務實例
+        if (g_consul) {
+            auto instances = g_consul->getHealthyServiceInstances("chat-user-service");
+            if (!instances.empty()) {
+                static std::atomic<size_t> rr{0};
+                auto& instance = instances[rr++ % instances.size()];
+                std::string ep = instance.address + ":" + std::to_string(instance.port);
+                auto ch = grpc::CreateChannel(ep, grpc::InsecureChannelCredentials());
+                return chat::user::UserService::NewStub(ch);
+            }
+        }
+#endif
+        // 回退到環境變數或預設值
+        std::string ep = user_eps_.empty() ? std::string("127.0.0.1:60051") : user_eps_[(user_rr_++) % user_eps_.size()];
+        auto ch = grpc::CreateChannel(ep, grpc::InsecureChannelCredentials());
+        return chat::user::UserService::NewStub(ch);
+    }
+    std::unique_ptr<chat::message::MessageService::Stub> getMsgStub() {
+#ifdef HAVE_CURL
+        if (g_consul) {
+            auto instances = g_consul->getHealthyServiceInstances("chat-message-service");
+            if (!instances.empty()) {
+                static std::atomic<size_t> rr{0};
+                auto& instance = instances[rr++ % instances.size()];
+                std::string ep = instance.address + ":" + std::to_string(instance.port);
+                auto ch = grpc::CreateChannel(ep, grpc::InsecureChannelCredentials());
+                return chat::message::MessageService::NewStub(ch);
+            }
+        }
+#endif
+        std::string ep = msg_eps_.empty() ? std::string("127.0.0.1:60053") : msg_eps_[(msg_rr_++) % msg_eps_.size()];
+        auto ch = grpc::CreateChannel(ep, grpc::InsecureChannelCredentials());
+        return chat::message::MessageService::NewStub(ch);
+    }
+    std::unique_ptr<chat::social::SocialService::Stub> getSocialStub() {
+#ifdef HAVE_CURL
+        if (g_consul) {
+            auto instances = g_consul->getHealthyServiceInstances("chat-social-service");
+            if (!instances.empty()) {
+                static std::atomic<size_t> rr{0};
+                auto& instance = instances[rr++ % instances.size()];
+                std::string ep = instance.address + ":" + std::to_string(instance.port);
+                auto ch = grpc::CreateChannel(ep, grpc::InsecureChannelCredentials());
+                return chat::social::SocialService::NewStub(ch);
+            }
+        }
+#endif
+        std::string ep = social_eps_.empty() ? std::string("127.0.0.1:60052") : social_eps_[(social_rr_++) % social_eps_.size()];
+        auto ch = grpc::CreateChannel(ep, grpc::InsecureChannelCredentials());
+        return chat::social::SocialService::NewStub(ch);
+    }
+#endif
+
+    std::unordered_map<int, TcpConnectionPtr> online_;
+    std::mutex mu_;
+
+    void bindUser(int userId, const TcpConnectionPtr& conn) {
+        std::lock_guard<std::mutex> lk(mu_);
+        online_[userId] = conn;
+    }
+    void unbindConn(const TcpConnectionPtr& conn) {
+        std::lock_guard<std::mutex> lk(mu_);
+        for (auto it = online_.begin(); it != online_.end(); ) {
+            if (it->second == conn) it = online_.erase(it); else ++it;
+        }
+    }
+public:
+    bool sendToUser(int userId, const std::string& payload) {
+        std::lock_guard<std::mutex> lk(mu_);
+        auto it = online_.find(userId);
+        if (it == online_.end()) return false;
+        it->second->send(payload);
+        return true;
+    }
 };
 
 
 int main(int argc, char** argv) {
+    // 初始化 Consul 客戶端
+#ifdef HAVE_CURL
+    std::string consulUrl = std::getenv("CONSUL_URL") ? std::getenv("CONSUL_URL") : std::string("http://127.0.0.1:8500");
+    g_consul = new ConsulClient(consulUrl);
+    std::cout << "Gateway: Consul client initialized: " << consulUrl << "\n";
+#endif
+
+    // 初始化 JWT 驗證器
+#ifdef HAVE_OPENSSL
+    std::string jwtSecret = std::getenv("JWT_SECRET") ? std::getenv("JWT_SECRET") : std::string("your-secret-key");
+    g_jwt = new JwtValidator(jwtSecret);
+    std::cout << "Gateway: JWT validator initialized\n";
+#endif
+
 #ifdef HAVE_CPPKAFKA
     std::atomic<bool> running{true};
     std::thread kafkaThread([&running]() {
+        std::string brokers = std::getenv("KAFKA_BROKERS") ? std::getenv("KAFKA_BROKERS") : std::string("127.0.0.1:9092");
         cppkafka::Configuration cfg = {
-            { "metadata.broker.list", "127.0.0.1:9092" },
+            { "metadata.broker.list", brokers },
             { "group.id", "chat-gateway-group" },
             { "enable.partition.eof", true },
         };
@@ -185,8 +330,17 @@ int main(int argc, char** argv) {
                 continue;
             }
             std::string payload = msg.get_payload();
-            // TODO: 解析消息，根據 to_id 推送在線連線
-            std::cout << "[Kafka] received: " << payload << "\n";
+            try {
+                auto js = json::parse(payload);
+                int to_id = js.value("to_id", 0);
+                if (to_id != 0 && g_gateway) {
+                    if (!g_gateway->sendToUser(to_id, payload)) {
+                        // offline: 忽略（已由 MessageService 落庫 offline_msgs）
+                    }
+                }
+            } catch (...) {
+                // ignore
+            }
         }
         consumer.close();
     });
@@ -195,6 +349,7 @@ int main(int argc, char** argv) {
     EventLoop loop;
     InetAddress addr(7000);
     GatewayServer server(&loop, addr);
+    g_gateway = &server;
     server.start();
     std::cout << "Chat Gateway (muduo) listening on 0.0.0.0:7000\n";
     loop.loop();
@@ -206,6 +361,15 @@ int main(int argc, char** argv) {
     running.store(false);
     if (kafkaThread.joinable()) kafkaThread.join();
 #endif
+
+    // 清理資源
+#ifdef HAVE_CURL
+    delete g_consul;
+#endif
+#ifdef HAVE_OPENSSL
+    delete g_jwt;
+#endif
+
     return 0;
 }
 

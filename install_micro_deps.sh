@@ -68,3 +68,5 @@ echo "[6/6] 完成。建議執行：sudo ldconfig"
 echo "完成後可在專案根執行：mkdir -p build && cd build && cmake -DBUILD_MICROSERVICES=ON .. && make -j$(nproc)"
 
 
+
+

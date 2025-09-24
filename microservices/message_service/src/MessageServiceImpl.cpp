@@ -3,6 +3,8 @@
 #include "db/Db.h"
 #include <cstdlib>
 #include <sstream>
+#include "json.hpp"
+using json = nlohmann::json;
 
 ::grpc::Status MessageServiceImpl::OneChat(::grpc::ServerContext* ctx,
                                            const chat::message::OneChatRequest* req,
@@ -34,6 +36,28 @@
     off << "INSERT INTO offline_msgs(user_id, payload) VALUES("
         << m.to_id() << ",'{\\"type\\":\\"ONE_CHAT_MSG\\",\\"from_id\\":" << m.from_id() << ",\\"content\\":\\"" << m.content() << "\\"}')";
     db.execute(off.str());
+    
+    // 發送 Kafka 訊息
+#ifdef HAVE_CPPKAFKA
+    try {
+        std::string brokers = std::getenv("KAFKA_BROKERS") ? std::getenv("KAFKA_BROKERS") : std::string("127.0.0.1:9092");
+        cppkafka::Configuration cfg = {{"metadata.broker.list", brokers}};
+        cppkafka::Producer producer(cfg);
+        
+        json msg_payload;
+        msg_payload["to_id"] = m.to_id();
+        msg_payload["from_id"] = m.from_id();
+        msg_payload["content"] = m.content();
+        msg_payload["timestamp_ms"] = m.timestamp_ms();
+        msg_payload["msg_id"] = m.msg_id();
+        
+        producer.produce(cppkafka::MessageBuilder("chat.private").payload(msg_payload.dump()));
+        producer.flush();
+    } catch (...) {
+        // ignore kafka errors
+    }
+#endif
+    
     resp->set_errno(0);
     resp->set_errmsg("");
     return ::grpc::Status::OK;
@@ -64,7 +88,27 @@
         resp->set_errmsg("insert group message failed");
         return ::grpc::Status::OK;
     }
-    // 簡化：不展開群成員，先落 DB
+    // 發送 Kafka 群組訊息
+#ifdef HAVE_CPPKAFKA
+    try {
+        std::string brokers = std::getenv("KAFKA_BROKERS") ? std::getenv("KAFKA_BROKERS") : std::string("127.0.0.1:9092");
+        cppkafka::Configuration cfg = {{"metadata.broker.list", brokers}};
+        cppkafka::Producer producer(cfg);
+        
+        json msg_payload;
+        msg_payload["group_id"] = m.group_id();
+        msg_payload["from_id"] = m.from_id();
+        msg_payload["content"] = m.content();
+        msg_payload["timestamp_ms"] = m.timestamp_ms();
+        msg_payload["msg_id"] = m.msg_id();
+        
+        producer.produce(cppkafka::MessageBuilder("chat.group").payload(msg_payload.dump()));
+        producer.flush();
+    } catch (...) {
+        // ignore kafka errors
+    }
+#endif
+    
     resp->set_errno(0);
     resp->set_errmsg("");
     return ::grpc::Status::OK;
