@@ -3,11 +3,19 @@ project(chat_common)
 
 add_library(chat_common STATIC
     db/Db.cpp
+    db/ConnectionPool.cpp
     consul/ConsulClient.cpp
     circuit/CircuitBreaker.cpp
+    circuit/CircuitBreakerManager.cpp
     jwt/JwtValidator.cpp
+    auth/AuthManager.cpp
+    discovery/ServiceDiscovery.cpp
+    retry/RetryManager.cpp
     tracing/Tracer.cpp
     metrics/MetricsCollector.cpp
+    config/ConfigManager.cpp
+    security/TlsManager.cpp
+    logging/Logger.cpp
 )
 
 target_include_directories(chat_common PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})

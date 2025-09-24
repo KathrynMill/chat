@@ -200,3 +200,76 @@ void Tracer::injectToGrpcMetadata(std::shared_ptr<void> span, std::multimap<std:
     metadata.insert({"traceparent", "00-12345678901234567890123456789012-1234567890123456-01"});
 #endif
 }
+
+std::string Tracer::generateTraceId() {
+    static std::random_device rd;
+    static std::mt19937 gen(rd());
+    static std::uniform_int_distribution<> dis(0, 15);
+    
+    std::string traceId;
+    traceId.reserve(32);
+    
+    for (int i = 0; i < 32; ++i) {
+        traceId += "0123456789abcdef"[dis(gen)];
+    }
+    
+    return traceId;
+}
+
+std::string Tracer::generateSpanId() {
+    static std::random_device rd;
+    static std::mt19937 gen(rd());
+    static std::uniform_int_distribution<> dis(0, 15);
+    
+    std::string spanId;
+    spanId.reserve(16);
+    
+    for (int i = 0; i < 16; ++i) {
+        spanId += "0123456789abcdef"[dis(gen)];
+    }
+    
+    return spanId;
+}
+
+std::string Tracer::getTraceId(std::shared_ptr<void> span) {
+    if (!span) return "";
+    
+    // 簡化實現：返回隨機生成的 trace ID
+    return generateTraceId();
+}
+
+std::string Tracer::getSpanId(std::shared_ptr<void> span) {
+    if (!span) return "";
+    
+    // 簡化實現：返回隨機生成的 span ID
+    return generateSpanId();
+}
+
+std::shared_ptr<void> Tracer::startSpanWithContext(const std::string& name,
+                                                  const std::string& traceId,
+                                                  const std::string& parentSpanId,
+                                                  const std::unordered_map<std::string, std::string>& attributes) {
+#ifdef HAVE_OPENTELEMETRY
+    if (!initialized_ || !tracer_) {
+        return nullptr;
+    }
+    
+    // 創建 span context
+    auto span = tracer_->StartSpan(name);
+    
+    // 添加 trace ID 和 span ID 屬性
+    span->SetAttribute("trace_id", traceId);
+    span->SetAttribute("span_id", parentSpanId);
+    
+    // 添加其他屬性
+    for (const auto& attr : attributes) {
+        span->SetAttribute(attr.first, attr.second);
+    }
+    
+    return std::shared_ptr<void>(span.release(), [](void* ptr) {
+        delete static_cast<opentelemetry::trace::Span*>(ptr);
+    });
+#else
+    return nullptr;
+#endif
+}

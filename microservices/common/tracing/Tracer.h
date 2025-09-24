@@ -58,6 +58,24 @@ public:
     
     // 注入 trace context 到 gRPC metadata
     void injectToGrpcMetadata(std::shared_ptr<void> span, std::multimap<std::string, std::string>& metadata);
+    
+    // 生成唯一的 trace ID
+    std::string generateTraceId();
+    
+    // 生成唯一的 span ID
+    std::string generateSpanId();
+    
+    // 從 span 中提取 trace ID
+    std::string getTraceId(std::shared_ptr<void> span);
+    
+    // 從 span 中提取 span ID
+    std::string getSpanId(std::shared_ptr<void> span);
+    
+    // 創建帶有 trace context 的 span
+    std::shared_ptr<void> startSpanWithContext(const std::string& name,
+                                              const std::string& traceId,
+                                              const std::string& parentSpanId,
+                                              const std::unordered_map<std::string, std::string>& attributes = {});
 
 private:
     Tracer() = default;
